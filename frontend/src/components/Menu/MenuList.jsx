@@ -1,0 +1,336 @@
+import { useEffect, useState, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
+import { addToCart, adjustCartQuantity, removeFromCart } from '../../redux/actions/cartActions';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MagnifyingGlassIcon, FunnelIcon, PlusIcon, MinusIcon, TrashIcon } from '@heroicons/react/24/solid';
+
+const MenuList = () => {
+  const [menu, setMenu] = useState([]);
+  const [filteredMenu, setFilteredMenu] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('all');
+  const [sort, setSort] = useState('name');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [quantities, setQuantities] = useState({});
+  const dispatch = useDispatch();
+  const { cartItems } = useSelector((state) => state.cart);
+
+  // Fetch menu data (run only once on mount)
+  useEffect(() => {
+    const fetchMenu = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_API}/api/menu`);
+        setMenu(data);
+        setFilteredMenu(data);
+        const cats = [...new Set(data.map(item => item.category))];
+        setCategories(['all', ...cats]);
+      } catch (err) {
+        setError('Failed to load menu. Please try again later.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMenu();
+  }, []);
+
+  // Initialize quantities based on cartItems and menu
+  useEffect(() => {
+    if (menu.length > 0) {
+      const initialQuantities = menu.reduce((acc, item) => {
+        const cartItem = cartItems.find(cartItem => cartItem._id === item._id);
+        return { ...acc, [item._id]: cartItem ? cartItem.qty : 0 };
+      }, {});
+      setQuantities(initialQuantities);
+    }
+  }, [menu, cartItems]);
+
+  // Filter and sort menu (memoized to prevent unnecessary recalculations)
+  useMemo(() => {
+    let filtered = menu.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
+    if (category !== 'all') filtered = filtered.filter(item => item.category === category);
+    filtered.sort((a, b) => {
+      if (sort === 'price_asc') return a.price - b.price;
+      if (sort === 'price_desc') return b.price - a.price;
+      return a.name.localeCompare(b.name);
+    });
+    setFilteredMenu(filtered);
+  }, [search, category, sort, menu]);
+
+  // Handle image loading errors
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23FFEDD5'/%3E%3Cpath d='M200,150 L250,100 L300,150 L250,200 Z' fill='%23FDBA74'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23FB923C'/%3E%3C/svg%3E";
+  };
+
+  // Get the quantity for a menu item from the cart
+  const getItemQuantity = (itemId) => {
+    const cartItem = cartItems.find(item => item._id === itemId);
+    return cartItem ? cartItem.qty : 0;
+  };
+
+  // Handle quantity changes (update local counter state)
+  const handleQuantityChange = (itemId, delta) => {
+    setQuantities(prev => ({
+      ...prev,
+      [itemId]: Math.max(0, (prev[itemId] || 0) + delta),
+    }));
+  };
+
+  // Handle adding/updating item in cart based on local counter value
+  const handleAddToCart = (item) => {
+    const qty = quantities[item._id] || 0;
+    if (qty > 0) {
+      if (getItemQuantity(item._id) > 0) {
+        dispatch(adjustCartQuantity(item._id, qty));
+      } else {
+        dispatch(addToCart(item, qty));
+      }
+    } else if (getItemQuantity(item._id) > 0) {
+      dispatch(adjustCartQuantity(item._id, 0));
+    }
+  };
+
+  // Handle removing item from cart
+  const handleRemoveFromCart = (itemId) => {
+    dispatch(removeFromCart(itemId));
+    setQuantities(prev => ({
+      ...prev,
+      [itemId]: 0,
+    }));
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } }
+  };
+
+  const badgeVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
+    exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } }
+  };
+
+  return (
+    <motion.div
+      className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <div className="container mx-auto px-6 py-12">
+        <motion.h2
+          className="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          🍽️ Our Gourmet Menu
+        </motion.h2>
+
+        {/* Search and Filters */}
+        <motion.div
+          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-12 bg-white/80 dark:bg-gray-800/80 p-6 rounded-3xl shadow-lg backdrop-blur-sm"
+          variants={itemVariants}
+        >
+          <div className="relative w-full md:w-1/3">
+            <input
+              type="text"
+              placeholder="Search dishes..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full p-4 pr-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+            />
+            <MagnifyingGlassIcon className="h-5 w-5 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="appearance-none p-4 pr-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+              >
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>
+                    {cat === 'all' ? 'All Categories' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  </option>
+                ))}
+              </select>
+              <FunnelIcon className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-orange-500" />
+            </div>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="p-4 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+            >
+              <option value="name">Sort by Name</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+            </select>
+          </div>
+        </motion.div>
+
+        {/* Menu Items */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map((_, index) => (
+              <motion.div
+                key={index}
+                className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg animate-pulse"
+                variants={itemVariants}
+              >
+                <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4"></div>
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
+                <div className="h-10 bg-orange-200 dark:bg-orange-700 rounded-lg"></div>
+              </motion.div>
+            ))}
+          </div>
+        ) : error ? (
+          <motion.div
+            className="text-center py-12"
+            variants={itemVariants}
+          >
+            <div className="text-6xl mb-4">🍽️</div>
+            <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Unable to load menu</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
+            <motion.button
+              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </motion.button>
+          </motion.div>
+        ) : filteredMenu.length === 0 ? (
+          <motion.div
+            className="text-center py-12"
+            variants={itemVariants}
+          >
+            <div className="text-6xl mb-4">🍽️</div>
+            <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">No items found</h3>
+            <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filters.</p>
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredMenu.map((item) => {
+              const cartQty = getItemQuantity(item._id);
+              const localQty = quantities[item._id] || 0;
+              return (
+                <motion.div
+                  key={item._id}
+                  className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500"
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.03, boxShadow: '0 25px 50px rgba(251, 146, 60, 0.2)' }}
+                >
+                  <div className="relative overflow-hidden">
+                    <img
+                      src={item.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23FFEDD5'/%3E%3Cpath d='M200,150 L250,100 L300,150 L250,200 Z' fill='%23FDBA74'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23FB923C'/%3E%3C/svg%3E"}
+                      alt={item.name}
+                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                      onError={handleImageError}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-orange-600/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-2xl font-bold text-gray-800 dark:text-white group-hover:text-orange-600 transition-colors">
+                        {item.name}
+                      </h3>
+                      <AnimatePresence>
+                        {cartQty > 0 && (
+                          <motion.span
+                            className="bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-800 text-orange-600 dark:text-orange-300 text-xs font-semibold px-2 py-1 rounded-full"
+                            variants={badgeVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                          >
+                            Added {cartQty} time{cartQty === 1 ? '' : 's'}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    {item.description && (
+                      <p className="text-gray-600 dark:text-gray-300 mb-3 text-sm line-clamp-2">{item.description}</p>
+                    )}
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-4">
+                      ${typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price || 0).toFixed(2)}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                      Prep Time: {item.prepTime} min | Category: {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <motion.button
+                          onClick={() => handleQuantityChange(item._id, -1)}
+                          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-900 dark:text-white disabled:opacity-50"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          disabled={localQty <= 0}
+                        >
+                          <MinusIcon className="h-5 w-5" />
+                        </motion.button>
+                        <span className="text-lg font-semibold text-gray-800 dark:text-white w-10 text-center">
+                          {localQty}
+                        </span>
+                        <motion.button
+                          onClick={() => handleQuantityChange(item._id, 1)}
+                          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-900 dark:text-white"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <PlusIcon className="h-5 w-5" />
+                        </motion.button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <motion.button
+                          onClick={() => handleAddToCart(item)}
+                          className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          disabled={localQty <= 0}
+                        >
+                          {cartQty > 0 ? 'Update Cart' : 'Add to Cart'}
+                        </motion.button>
+                        <AnimatePresence>
+                          {cartQty > 0 && (
+                            <motion.button
+                              onClick={() => handleRemoveFromCart(item._id)}
+                              className="bg-gradient-to-r from-red-500 to-red-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </motion.button>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+export default MenuList;
