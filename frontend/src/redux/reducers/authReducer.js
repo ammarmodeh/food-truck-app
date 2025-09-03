@@ -4,6 +4,7 @@ const initialState = {
   user: null,
   error: null,
   message: null,
+  isLoading: true, // Add loading state
 };
 
 const authReducer = (state = initialState, action) => {
@@ -26,6 +27,7 @@ const authReducer = (state = initialState, action) => {
         user: action.payload,
         error: null,
         message: null,
+        isLoading: false,
       };
     case 'FORGOT_PASSWORD_SUCCESS':
     case 'RESET_PASSWORD_SUCCESS':
@@ -54,6 +56,7 @@ const authReducer = (state = initialState, action) => {
         user: null,
         error: null,
         message: null,
+        isLoading: false,
       };
     case 'CLEAR_ERRORS':
       return {

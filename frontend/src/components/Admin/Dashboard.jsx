@@ -36,6 +36,10 @@ const Dashboard = () => {
   const [stats, setStats] = useState({ orders: 0, revenue: 0, chartData: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const handleMenuChange = (e) => setMenuForm({ ...menuForm, [e.target.name]: e.target.name === 'price' || e.target.name === 'prepTime' ? parseFloat(e.target.value) || 0 : e.target.value });
+  const handleScheduleChange = (e) => setScheduleForm({ ...scheduleForm, [e.target.name]: e.target.value });
+  const handleLocationChange = (e) => setLocationForm({ ...locationForm, [e.target.name]: e.target.name.includes('coordinates') ? { ...locationForm.coordinates, [e.target.name.split('.')[1]]: parseFloat(e.target.value) || 0 } : e.target.value });
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -72,9 +76,16 @@ const Dashboard = () => {
     }
   }, [user, notify]);
 
-  const handleMenuChange = (e) => setMenuForm({ ...menuForm, [e.target.name]: e.target.name === 'price' || e.target.name === 'prepTime' ? parseFloat(e.target.value) || 0 : e.target.value });
-  const handleScheduleChange = (e) => setScheduleForm({ ...scheduleForm, [e.target.name]: e.target.value });
-  const handleLocationChange = (e) => setLocationForm({ ...locationForm, [e.target.name]: e.target.name.includes('coordinates') ? { ...locationForm.coordinates, [e.target.name.split('.')[1]]: parseFloat(e.target.value) || 0 } : e.target.value });
+  useEffect(() => {
+    // Check if user is loaded and is admin
+    if (user !== null) {
+      if (!user.isAdmin) {
+        navigate('/');
+      } else {
+        setIsCheckingAuth(false);
+      }
+    }
+  }, [user, navigate]);
 
   const addMenuItem = async (e) => {
     e.preventDefault();
@@ -198,6 +209,15 @@ const Dashboard = () => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
   };
+
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
 
   if (!user || !user.isAdmin) {
     return (

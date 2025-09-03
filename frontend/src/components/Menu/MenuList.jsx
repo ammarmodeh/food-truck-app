@@ -4,6 +4,7 @@ import axios from 'axios';
 import { addToCart, adjustCartQuantity, removeFromCart } from '../../redux/actions/cartActions';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MagnifyingGlassIcon, FunnelIcon, PlusIcon, MinusIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 const MenuList = () => {
   const [menu, setMenu] = useState([]);
@@ -17,6 +18,7 @@ const MenuList = () => {
   const [quantities, setQuantities] = useState({});
   const dispatch = useDispatch();
   const { cartItems } = useSelector((state) => state.cart);
+  const { user } = useSelector((state) => state.auth); // Access auth state to check if user is logged in
 
   // Fetch menu data (run only once on mount)
   useEffect(() => {
@@ -143,10 +145,11 @@ const MenuList = () => {
 
         {/* Search and Filters */}
         <motion.div
-          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-12 bg-white/80 dark:bg-gray-800/80 p-6 rounded-3xl shadow-lg backdrop-blur-sm"
+          className="flex flex-col gap-4 mb-12 bg-white/80 dark:bg-gray-800/80 p-6 rounded-3xl shadow-lg backdrop-blur-sm"
           variants={itemVariants}
         >
-          <div className="relative w-full md:w-1/3">
+          {/* Search Input - Full width on all screens */}
+          <div className="relative w-full">
             <input
               type="text"
               placeholder="Search dishes..."
@@ -156,12 +159,15 @@ const MenuList = () => {
             />
             <MagnifyingGlassIcon className="h-5 w-5 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
-          <div className="flex items-center gap-4">
-            <div className="relative">
+
+          {/* Filter and Sort Options - Stack vertically on mobile, row on larger screens */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
+            {/* Category Filter */}
+            <div className="relative w-full sm:w-auto sm:flex-1">
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="appearance-none p-4 pr-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                className="w-full p-4 pr-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 appearance-none"
               >
                 {categories.map(cat => (
                   <option key={cat} value={cat}>
@@ -169,17 +175,22 @@ const MenuList = () => {
                   </option>
                 ))}
               </select>
-              <FunnelIcon className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-orange-500" />
+              <FunnelIcon className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-orange-500 pointer-events-none" />
             </div>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              className="p-4 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
-            >
-              <option value="name">Sort by Name</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
-            </select>
+
+            {/* Sort Option */}
+            <div className="relative w-full sm:w-auto sm:flex-1">
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                className="w-full p-4 pr-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 appearance-none"
+              >
+                <option value="name">Sort by Name</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+              </select>
+              <ChevronDownIcon className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-orange-500 pointer-events-none" />
+            </div>
           </div>
         </motion.div>
 
@@ -253,7 +264,7 @@ const MenuList = () => {
                         {item.name}
                       </h3>
                       <AnimatePresence>
-                        {cartQty > 0 && (
+                        {cartQty > 0 && user && (
                           <motion.span
                             className="bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-800 text-orange-600 dark:text-orange-300 text-xs font-semibold px-2 py-1 rounded-full"
                             variants={badgeVariants}
@@ -275,53 +286,59 @@ const MenuList = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                       Prep Time: {item.prepTime} min | Category: {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
                     </p>
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <motion.button
-                          onClick={() => handleQuantityChange(item._id, -1)}
-                          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-900 dark:text-white disabled:opacity-50"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          disabled={localQty <= 0}
-                        >
-                          <MinusIcon className="h-5 w-5" />
-                        </motion.button>
-                        <span className="text-lg font-semibold text-gray-800 dark:text-white w-10 text-center">
-                          {localQty}
-                        </span>
-                        <motion.button
-                          onClick={() => handleQuantityChange(item._id, 1)}
-                          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-900 dark:text-white"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <PlusIcon className="h-5 w-5" />
-                        </motion.button>
+                    {user ? (
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <motion.button
+                            onClick={() => handleQuantityChange(item._id, -1)}
+                            className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-900 dark:text-white disabled:opacity-50"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            disabled={localQty <= 0}
+                          >
+                            <MinusIcon className="h-5 w-5" />
+                          </motion.button>
+                          <span className="text-lg font-semibold text-gray-800 dark:text-white w-10 text-center">
+                            {localQty}
+                          </span>
+                          <motion.button
+                            onClick={() => handleQuantityChange(item._id, 1)}
+                            className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-900 dark:text-white"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <PlusIcon className="h-5 w-5" />
+                          </motion.button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <motion.button
+                            onClick={() => handleAddToCart(item)}
+                            className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            disabled={localQty <= 0}
+                          >
+                            {cartQty > 0 ? 'Update Cart' : 'Add to Cart'}
+                          </motion.button>
+                          <AnimatePresence>
+                            {cartQty > 0 && (
+                              <motion.button
+                                onClick={() => handleRemoveFromCart(item._id)}
+                                className="bg-gradient-to-r from-red-500 to-red-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <TrashIcon className="h-5 w-5" />
+                              </motion.button>
+                            )}
+                          </AnimatePresence>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <motion.button
-                          onClick={() => handleAddToCart(item)}
-                          className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          disabled={localQty <= 0}
-                        >
-                          {cartQty > 0 ? 'Update Cart' : 'Add to Cart'}
-                        </motion.button>
-                        <AnimatePresence>
-                          {cartQty > 0 && (
-                            <motion.button
-                              onClick={() => handleRemoveFromCart(item._id)}
-                              className="bg-gradient-to-r from-red-500 to-red-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              <TrashIcon className="h-5 w-5" />
-                            </motion.button>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                        Please log in to add items to your cart.
+                      </p>
+                    )}
                   </div>
                 </motion.div>
               );

@@ -12,9 +12,9 @@ export const SocketProvider = ({ children }) => {
     if (user) {
       socket.auth = { userId: user._id };
       socket.connect();
-      console.log('Socket.io connecting with userId:', user._id);
+      // console.log('Socket.io connecting with userId:', user._id);
       socket.on('connect', () => {
-        console.log('Socket.io connected, joining room:', user._id);
+        // console.log('Socket.io connected, joining room:', user._id);
         socket.emit('join', user._id);
       });
     }

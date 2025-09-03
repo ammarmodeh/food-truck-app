@@ -46,10 +46,14 @@ export const loadUser = () => async (dispatch) => {
   if (localStorage.token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.token}`;
   }
+
   try {
     const res = await axios.get(`${import.meta.env.VITE_BACKEND_API}/api/auth/user`);
     dispatch({ type: 'USER_LOADED', payload: res.data });
   } catch (err) {
+    // Clear invalid token
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
     dispatch({ type: 'AUTH_ERROR' });
   }
 };

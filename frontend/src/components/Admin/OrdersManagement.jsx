@@ -63,7 +63,7 @@ const OrdersManagement = () => {
       setLoading(false);
     }
 
-    socket.on('connect', () => console.log('Socket.io connected'));
+    // socket.on('connect', () => console.log('Socket.io connected'));
     socket.on('queueUpdate', (update) => {
       setQueue(update);
       notify(`Queue updated: ${update.length} orders`, 'info');

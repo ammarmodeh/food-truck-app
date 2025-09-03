@@ -34,10 +34,10 @@ export const placeOrder = async (req, res) => {
 
     const io = req.app.get('io');
     const queueUpdate = { length: queueLength + 1, estimatedWait };
-    console.log('Emitting queueUpdate (placeOrder):', queueUpdate);
+    // console.log('Emitting queueUpdate (placeOrder):', queueUpdate);
     io.emit('queueUpdate', queueUpdate);
 
-    console.log(`Order placed for user: ${user.phone}, Order ID: ${order._id}`);
+    // console.log(`Order placed for user: ${user.phone}, Order ID: ${order._id}`);
 
     res.json(order);
   } catch (err) {
@@ -88,11 +88,11 @@ export const updateOrderStatus = async (req, res) => {
     const pendingOrders = await Order.find({ status: { $in: ['Pending', 'Preparing'] } });
     const estimatedWait = pendingOrders.reduce((total, order) => total + (order.estimatedWait || 5), 0);
     const queueUpdate = { length: queueLength, estimatedWait };
-    console.log('Emitting queueUpdate (updateOrderStatus):', queueUpdate);
+    // console.log('Emitting queueUpdate (updateOrderStatus):', queueUpdate);
     io.emit('queueUpdate', queueUpdate);
 
     if (status === 'Ready' || status === 'Delivered' || status === 'Cancelled') {
-      console.log(`Emitting orderStatusUpdate for user ${order.user}, Order ID: ${id}, Status: ${status}`);
+      // console.log(`Emitting orderStatusUpdate for user ${order.user}, Order ID: ${id}, Status: ${status}`);
       io.to(order.user.toString()).emit('orderStatusUpdate', { orderId: id, status });
     }
 
@@ -109,7 +109,7 @@ export const getQueue = async (req, res) => {
     const pendingOrders = await Order.find({ status: { $in: ['Pending', 'Preparing'] } });
     const estimatedWait = pendingOrders.reduce((total, order) => total + (order.estimatedWait || 5), 0);
     const queueUpdate = { length: queueLength, estimatedWait };
-    console.log('Sending queue data:', queueUpdate);
+    // console.log('Sending queue data:', queueUpdate);
     res.json(queueUpdate);
   } catch (err) {
     console.error('Get queue error:', err);

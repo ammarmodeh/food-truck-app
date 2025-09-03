@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import App from './App';
 import Home from './pages/Home';
 import Login from './components/Auth/Login';
@@ -15,6 +15,7 @@ import OrdersManagement from './components/Admin/OrdersManagement';
 import ForgotPassword from './components/Auth/ForgotPassword';
 import ResetPassword from './components/Auth/ResetPassword';
 import MenuManagement from './components/Menu/MenuManagement';
+import AdminRoute from './components/Admin/AdminRoute';
 
 const router = createBrowserRouter([
   {
@@ -25,9 +26,18 @@ const router = createBrowserRouter([
       { path: 'login', element: <Login /> },
       { path: 'register', element: <Register /> },
       { path: 'profile', element: <Profile /> },
-      { path: 'admin', element: <AdminPage /> },
-      { path: 'orders-mgmt', element: <OrdersManagement /> },
-      { path: "/menu-mgmt", element: <MenuManagement /> },
+      {
+        path: 'admin',
+        element: <AdminRoute><AdminPage /></AdminRoute>
+      },
+      {
+        path: 'orders-mgmt',
+        element: <AdminRoute><OrdersManagement /></AdminRoute>
+      },
+      {
+        path: "/menu-mgmt",
+        element: <AdminRoute><MenuManagement /></AdminRoute>
+      },
       { path: 'orders', element: <UserOrderStatus /> },
       { path: 'menu', element: <MenuList /> },
       { path: 'cart', element: <Cart /> },

@@ -2,18 +2,21 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
+const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FDBA74;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FB923C;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='300' fill='url(%23grad1)'/%3E%3Cg transform='translate(200,150)'%3E%3Ccircle r='40' fill='white' opacity='0.9'/%3E%3Ctext x='0' y='8' text-anchor='middle' fill='%23EA580C' font-size='24' font-family='Arial'%3E🍕%3C/text%3E%3C/g%3E%3C/svg%3E";
+
 const Home = () => {
   const [featuredMenu, setFeaturedMenu] = useState([]);
   const [upcomingSchedule, setUpcomingSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [isReady, setIsReady] = useState(false);
 
   const heroRef = useRef(null);
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start start", "end start"]
+    offset: ["start start", "end start"],
   });
 
   const heroY = useTransform(scrollYProgress, [0, 1], [0, -200]);
@@ -26,11 +29,13 @@ const Home = () => {
         setLoading(true);
         setError(null);
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Ensure a minimum loading time to prevent flickering
+        const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 1000));
 
         const [menuResponse, scheduleResponse] = await Promise.all([
           fetch(`${import.meta.env.VITE_BACKEND_API}/api/menu`),
-          fetch(`${import.meta.env.VITE_BACKEND_API}/api/schedules?view=week`)
+          fetch(`${import.meta.env.VITE_BACKEND_API}/api/schedules?view=week`),
+          minLoadingTime,
         ]);
 
         if (!menuResponse.ok || !scheduleResponse.ok) {
@@ -39,12 +44,11 @@ const Home = () => {
 
         const [menuData, scheduleData] = await Promise.all([
           menuResponse.json(),
-          scheduleResponse.json()
+          scheduleResponse.json(),
         ]);
 
         setFeaturedMenu(menuData.slice(0, 3));
         setUpcomingSchedule(scheduleData.slice(0, 3));
-
       } catch (err) {
         console.error('API Error:', err);
         setError(err.message);
@@ -58,9 +62,15 @@ const Home = () => {
     fetchData();
   }, []);
 
-  const handleImageError = (e) => {
+  useEffect(() => {
+    if (!loading) {
+      setTimeout(() => setIsReady(true), 100); // Small delay for smooth transition
+    }
+  }, [loading]);
+
+  const handleImageError = (e, setImage) => {
     e.target.onerror = null;
-    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FDBA74;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FB923C;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='300' fill='url(%23grad1)'/%3E%3Cg transform='translate(200,150)'%3E%3Ccircle r='40' fill='white' opacity='0.9'/%3E%3Ctext x='0' y='8' text-anchor='middle' fill='%23EA580C' font-size='24' font-family='Arial'%3E🍕%3C/text%3E%3C/g%3E%3C/svg%3E";
+    setImage(fallbackImage);
   };
 
   const testimonials = [
@@ -68,20 +78,20 @@ const Home = () => {
       text: "Absolutely incredible! The gourmet burgers are restaurant-quality, but with that amazing food truck vibe. The truffle fries changed my life!",
       author: "Sarah Chen",
       rating: 5,
-      image: "👩‍🍳"
+      image: "👩‍🍳",
     },
     {
       text: "Best street tacos in the city! Fresh ingredients, bold flavors, and the staff remembers my order. This is what food trucks should be!",
       author: "Marcus Rodriguez",
       rating: 5,
-      image: "👨‍🌾"
+      image: "👨‍🌾",
     },
     {
       text: "I follow this truck all over town! The seasonal specials are always amazing and the commitment to local ingredients shows in every bite.",
       author: "Emma Thompson",
       rating: 5,
-      image: "👩‍💼"
-    }
+      image: "👩‍💼",
+    },
   ];
 
   const containerVariants = {
@@ -90,9 +100,9 @@ const Home = () => {
       opacity: 1,
       transition: {
         duration: 0.6,
-        staggerChildren: 0.15
-      }
-    }
+        staggerChildren: 0.15,
+      },
+    },
   };
 
   const itemVariants = {
@@ -102,26 +112,26 @@ const Home = () => {
       opacity: 1,
       transition: {
         duration: 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94]
-      }
-    }
+        ease: [0.25, 0.46, 0.45, 0.94],
+      },
+    },
   };
 
   const cardHoverVariants = {
-    initial: { scale: 1, rotateY: 0 },
+    initial: { scale: 1 },
     hover: {
-      // scale: 1.05,
-      rotateY: 5,
-      transition: { duration: 0.3, ease: "easeOut" }
-    }
+      scale: 1.03,
+      transition: { duration: 0.3, ease: "easeOut" },
+    },
   };
 
   const floatingAnimation = {
     y: [0, -10, 0],
     transition: {
       duration: 3,
-      ease: "easeInOut"
-    }
+      ease: "easeInOut",
+      repeat: Infinity,
+    },
   };
 
   const LoadingSkeleton = ({ className, children }) => (
@@ -130,30 +140,41 @@ const Home = () => {
     </div>
   );
 
-  const InteractiveCard = ({ children, className, ...props }) => {
-    const cardRef = useRef(null);
-    const [isHovered, setIsHovered] = useState(false);
+  const InteractiveCard = ({ item, index, className }) => {
+    const [imageSrc, setImageSrc] = useState(item.image || fallbackImage);
 
     return (
       <motion.div
-        ref={cardRef}
         className={className}
         variants={cardHoverVariants}
-        initial="initial"
         whileHover="hover"
-        onHoverStart={() => setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
-        {...props}
+        initial={{ opacity: 0, y: 60 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-200px" }}
+        transition={{ delay: index * 0.2, duration: 0.8 }}
       >
-        {children}
-        {isHovered && (
-          <motion.div
-            className="absolute inset-0 rounded-3xl"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+        <div className="relative overflow-hidden">
+          <img
+            src={imageSrc}
+            alt={item.name}
+            className="w-full h-64 object-cover transition-transform duration-300"
+            onError={(e) => handleImageError(e, setImageSrc)}
           />
-        )}
+          <div className="absolute top-4 right-4 bg-gradient-to-r from-orange-400 to-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+            ⭐ Popular
+          </div>
+        </div>
+        <div className="p-8">
+          <h3 className="text-2xl font-bold text-gray-800 mb-3">{item.name}</h3>
+          {item.description && (
+            <p className="text-gray-600 mb-4 text-sm leading-relaxed line-clamp-2">
+              {item.description}
+            </p>
+          )}
+          <p className="text-4xl font-black text-orange-600 mb-6">
+            ${typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price || 0).toFixed(2)}
+          </p>
+        </div>
       </motion.div>
     );
   };
@@ -192,21 +213,10 @@ const Home = () => {
             <div className="absolute inset-0">
               <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-red-500 to-pink-600 opacity-90" />
               <div className="absolute inset-0 bg-[url('/food_truck_dribble_4x.jpg')] bg-cover blur-[5px] bg-center bg-fixed" />
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40"
-                animate={{
-                  background: [
-                    "linear-gradient(to top, rgba(0,0,0,0.6), transparent, rgba(0,0,0,0.4))",
-                    "linear-gradient(to top, rgba(0,0,0,0.4), transparent, rgba(0,0,0,0.6))",
-                    "linear-gradient(to top, rgba(0,0,0,0.6), transparent, rgba(0,0,0,0.4))"
-                  ]
-                }}
-                transition={{ duration: 8 }}
-              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40" />
             </div>
 
             <div className="relative z-10 text-center max-w-6xl mx-auto px-6">
-
               <motion.h1
                 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-8 text-white"
                 initial={{ y: 100, opacity: 0 }}
@@ -248,7 +258,6 @@ const Home = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {/* <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-red-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div> */}
                   <Link
                     to="/menu"
                     className="relative px-10 py-5 bg-white text-orange-600 rounded-full text-lg font-bold shadow-2xl hover:shadow-orange-500/25 transition-all duration-300 flex items-center space-x-3"
@@ -272,30 +281,18 @@ const Home = () => {
                   </Link>
                 </motion.div>
               </motion.div>
-
-              {/* <motion.div
-                className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
-                animate={{ y: [0, 10, 0] }}
-                transition={{ duration: 2 }}
-              >
-                <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-                  <div className="w-1 h-3 bg-white/70 rounded-full mt-2"></div>
-                </div>
-              </motion.div> */}
             </div>
           </motion.section>
 
+          {/* Signature Creations Section */}
           <motion.section
             className="py-20 relative"
             variants={itemVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true, margin: "-200px" }}
           >
-            <motion.div
-              className="text-center mb-16"
-              variants={itemVariants}
-            >
+            <motion.div className="text-center mb-16" variants={itemVariants}>
               <motion.h2
                 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-orange-600 via-red-500 to-pink-600 bg-clip-text text-transparent"
                 initial={{ scale: 0.8 }}
@@ -308,150 +305,77 @@ const Home = () => {
             </motion.div>
 
             <AnimatePresence mode="wait">
-              {loading ? (
-                <motion.div
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  {[1, 2, 3].map((index) => (
-                    <LoadingSkeleton key={index} className="group">
-                      <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-                        <div className="w-full h-64 bg-gradient-to-br from-orange-200 via-orange-300 to-red-300 relative">
-                          <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                            animate={{ x: [-300, 300] }}
-                            transition={{ duration: 2, ease: "linear" }}
-                          />
-                        </div>
-                        <div className="p-8">
-                          <div className="h-8 bg-gray-200 rounded-full mb-4"></div>
-                          <div className="h-6 bg-gray-300 rounded-full w-3/4 mb-4"></div>
-                          <div className="h-10 bg-orange-200 rounded-full w-24 mb-6"></div>
-                          <div className="h-12 bg-gray-200 rounded-xl"></div>
-                        </div>
-                      </div>
-                    </LoadingSkeleton>
-                  ))}
-                </motion.div>
-              ) : error ? (
-                <motion.div
-                  className="text-center py-20"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6 }}
-                >
+              {isReady && !loading ? (
+                error ? (
                   <motion.div
-                    className="text-8xl mb-8"
-                    animate={{ rotate: [0, -10, 10, 0] }}
-                    transition={{ duration: 2 }}
+                    className="text-center py-20"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.6 }}
                   >
-                    🍽️
+                    <motion.div
+                      className="text-8xl mb-8"
+                      animate={{ rotate: [0, -10, 10, 0] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      🍽️
+                    </motion.div>
+                    <h3 className="text-3xl font-bold text-gray-700 mb-4">Oops! Menu's taking a break</h3>
+                    <p className="text-gray-500 mb-8 text-lg">{error}</p>
+                    <motion.button
+                      className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => window.location.reload()}
+                    >
+                      Try Again
+                    </motion.button>
                   </motion.div>
-                  <h3 className="text-3xl font-bold text-gray-700 mb-4">Oops! Menu's taking a break</h3>
-                  <p className="text-gray-500 mb-8 text-lg">{error}</p>
-                  <motion.button
-                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => window.location.reload()}
+                ) : featuredMenu.length === 0 ? (
+                  <motion.div
+                    className="text-center py-20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                   >
-                    Try Again
-                  </motion.button>
-                </motion.div>
-              ) : featuredMenu.length === 0 ? (
-                <motion.div
-                  className="text-center py-20"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <div className="text-8xl mb-8">🍽️</div>
-                  <h3 className="text-3xl font-bold text-gray-700 mb-4">Menu coming soon!</h3>
-                  <p className="text-gray-500 text-lg">We're cooking up something amazing</p>
-                </motion.div>
+                    <div className="text-8xl mb-8">🍽️</div>
+                    <h3 className="text-3xl font-bold text-gray-700 mb-4">Menu coming soon!</h3>
+                    <p className="text-gray-500 text-lg">We're cooking up something amazing</p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ staggerChildren: 0.2 }}
+                  >
+                    {featuredMenu.map((item, index) => (
+                      <InteractiveCard
+                        key={item._id}
+                        item={item}
+                        index={index}
+                        className="relative bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300"
+                      />
+                    ))}
+                  </motion.div>
+                )
               ) : (
                 <motion.div
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ staggerChildren: 0.2 }}
+                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
                 >
-                  {featuredMenu.map((item, index) => (
-                    <InteractiveCard
-                      key={item._id}
-                      className="group relative bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500"
-                      initial={{ opacity: 0, y: 60 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.2, duration: 0.8 }}
-                    >
-                      <div className="relative overflow-hidden">
-                        <motion.img
-                          src={item.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FDBA74;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23FB923C;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='300' fill='url(%23grad1)'/%3E%3Cg transform='translate(200,150)'%3E%3Ccircle r='40' fill='white' opacity='0.9'/%3E%3Ctext x='0' y='8' text-anchor='middle' fill='%23EA580C' font-size='24'%3E🍕%3C/text%3E%3C/g%3E%3C/svg%3E"}
-                          alt={item.name}
-                          className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-110"
-                          onError={handleImageError}
-                          whileHover={{ scale: 1.1 }}
-                        />
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"
-                          initial={{ opacity: 0 }}
-                          whileHover={{ opacity: 1 }}
-                          transition={{ duration: 0.3 }}
-                        />
-                        <motion.div
-                          className="absolute top-4 right-4 bg-gradient-to-r from-orange-400 to-red-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg"
-                          initial={{ scale: 0, rotate: -180 }}
-                          animate={{ scale: 1, rotate: 0 }}
-                          transition={{ delay: index * 0.2 + 0.5, duration: 0.5 }}
-                        >
-                          ⭐ Popular
-                        </motion.div>
+                  {[1, 2, 3].map((index) => (
+                    <LoadingSkeleton key={`skeleton-${index}`} className="group">
+                      <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+                        <div className="w-full h-64 bg-gray-200"></div>
+                        <div className="p-8">
+                          <div className="h-8 bg-gray-200 rounded-full mb-4"></div>
+                          <div className="h-6 bg-gray-300 rounded-full w-3/4 mb-4"></div>
+                          <div className="h-10 bg-orange-200 rounded-full w-24"></div>
+                        </div>
                       </div>
-
-                      <div className="p-8">
-                        <motion.h3
-                          className="text-2xl font-bold text-gray-800 mb-3 group-hover:text-orange-600 transition-colors duration-300"
-                          initial={{ x: -20, opacity: 0 }}
-                          whileInView={{ x: 0, opacity: 1 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          {item.name}
-                        </motion.h3>
-
-                        {item.description && (
-                          <motion.p
-                            className="text-gray-600 mb-4 text-sm leading-relaxed line-clamp-2"
-                            initial={{ x: -20, opacity: 0 }}
-                            whileInView={{ x: 0, opacity: 1 }}
-                            transition={{ delay: index * 0.1 + 0.1 }}
-                          >
-                            {item.description}
-                          </motion.p>
-                        )}
-
-                        <motion.p
-                          className="text-4xl font-black text-orange-600 mb-6"
-                          initial={{ scale: 0 }}
-                          whileInView={{ scale: 1 }}
-                          transition={{ delay: index * 0.1 + 0.2, type: "spring", bounce: 0.5 }}
-                        >
-                          ${typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price || 0).toFixed(2)}
-                        </motion.p>
-
-                        {/* <motion.button
-                          className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-300 group-hover:from-orange-600 group-hover:to-red-600"
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          initial={{ y: 20, opacity: 0 }}
-                          whileInView={{ y: 0, opacity: 1 }}
-                          transition={{ delay: index * 0.1 + 0.3 }}
-                        >
-                          Add to Cart 🛒
-                        </motion.button> */}
-                      </div>
-                    </InteractiveCard>
+                    </LoadingSkeleton>
                   ))}
                 </motion.div>
               )}
@@ -463,12 +387,7 @@ const Home = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <motion.div
-                className="relative inline-block group"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {/* <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-red-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div> */}
+              <motion.div className="relative inline-block group" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
                   to="/menu"
                   className="relative px-8 py-4 bg-white text-orange-600 rounded-full text-lg font-bold shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center space-x-2"
@@ -480,17 +399,15 @@ const Home = () => {
             </motion.div>
           </motion.section>
 
+          {/* Catch Us Here Section */}
           <motion.section
             className="py-20 bg-gradient-to-r from-orange-50 to-red-50 rounded-3xl my-20"
             variants={itemVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-200px" }}
           >
-            <motion.div
-              className="text-center mb-16"
-              variants={itemVariants}
-            >
+            <motion.div className="text-center mb-16" variants={itemVariants}>
               <motion.h2
                 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-orange-600 via-red-500 to-pink-600 bg-clip-text text-transparent"
                 initial={{ scale: 0.8 }}
@@ -503,10 +420,89 @@ const Home = () => {
             </motion.div>
 
             <AnimatePresence mode="wait">
-              {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+              {isReady && !loading ? (
+                upcomingSchedule.length === 0 ? (
+                  <motion.div
+                    className="text-center py-20"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <div className="text-8xl mb-8">📅</div>
+                    <h3 className="text-3xl font-bold text-gray-700 mb-4">Schedule loading...</h3>
+                    <p className="text-gray-500 text-lg">Stay tuned for our next adventure!</p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ staggerChildren: 0.2 }}
+                  >
+                    {upcomingSchedule.map((schedule, index) => (
+                      <motion.div
+                        key={schedule._id}
+                        className="relative bg-gradient-to-br from-white via-orange-50 to-red-50 p-8 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300"
+                        initial={{ opacity: 0, x: -50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, margin: "-200px" }}
+                        transition={{ delay: index * 0.2, duration: 0.8 }}
+                      >
+                        <div className="relative z-10">
+                          <motion.div className="text-5xl mb-6">📅</motion.div>
+                          <motion.h3
+                            className="text-2xl font-bold text-gray-800 mb-4"
+                            initial={{ y: 20, opacity: 0 }}
+                            whileInView={{ y: 0, opacity: 1 }}
+                            transition={{ delay: index * 0.1 }}
+                          >
+                            {new Date(schedule.date).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </motion.h3>
+                          <motion.p
+                            className="text-xl text-gray-700 mb-3 flex items-center space-x-2"
+                            initial={{ y: 20, opacity: 0 }}
+                            whileInView={{ y: 0, opacity: 1 }}
+                            transition={{ delay: index * 0.1 + 0.1 }}
+                          >
+                            <span>📍</span>
+                            <span>{schedule.location}{schedule.state ? `, ${schedule.state}` : ''}</span>
+                          </motion.p>
+                          <motion.p
+                            className="text-lg text-orange-600 font-semibold flex items-center space-x-2"
+                            initial={{ y: 20, opacity: 0 }}
+                            whileInView={{ y: 0, opacity: 1 }}
+                            transition={{ delay: index * 0.1 + 0.2 }}
+                          >
+                            <span>🕒</span>
+                            <span>{schedule.startTime} - {schedule.endTime}</span>
+                          </motion.p>
+                          {schedule.notes && (
+                            <motion.p
+                              className="text-sm text-gray-600 mt-4 italic bg-white/50 p-3 rounded-lg"
+                              initial={{ opacity: 0 }}
+                              whileInView={{ opacity: 1 }}
+                              transition={{ delay: index * 0.1 + 0.3 }}
+                            >
+                              💭 {schedule.notes}
+                            </motion.p>
+                          )}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )
+              ) : (
+                <motion.div
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
+                >
                   {[1, 2, 3].map((index) => (
-                    <LoadingSkeleton key={index}>
+                    <LoadingSkeleton key={`schedule-skeleton-${index}`}>
                       <div className="bg-gradient-to-br from-orange-100 to-red-200 p-8 rounded-3xl shadow-xl">
                         <div className="h-10 bg-orange-300 rounded-full mb-4 w-32"></div>
                         <div className="h-6 bg-orange-300 rounded-full mb-3"></div>
@@ -514,88 +510,7 @@ const Home = () => {
                       </div>
                     </LoadingSkeleton>
                   ))}
-                </div>
-              ) : upcomingSchedule.length === 0 ? (
-                <motion.div
-                  className="text-center py-20"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <div className="text-8xl mb-8">📅</div>
-                  <h3 className="text-3xl font-bold text-gray-700 mb-4">Schedule loading...</h3>
-                  <p className="text-gray-500 text-lg">Stay tuned for our next adventure!</p>
                 </motion.div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-                  {upcomingSchedule.map((schedule, index) => (
-                    <motion.div
-                      key={schedule._id}
-                      className="relative bg-gradient-to-br from-white via-orange-50 to-red-50 p-8 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500"
-                      initial={{ opacity: 0, x: -50 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.2, duration: 0.8 }}
-                    // whileHover={{ scale: 1.03, y: -5 }}
-                    >
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-300/30 to-transparent rounded-full -translate-y-16 translate-x-16"></div>
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-red-300/30 to-transparent rounded-full translate-y-12 -translate-x-12"></div>
-
-                      <div className="relative z-10">
-                        <motion.div
-                          className="text-5xl mb-6"
-                          // animate={{ rotate: [0, -5, 5, 0] }}
-                          transition={{ duration: 4 }}
-                        >
-                          📅
-                        </motion.div>
-
-                        <motion.h3
-                          className="text-2xl font-bold text-gray-800 mb-4"
-                          initial={{ y: 20, opacity: 0 }}
-                          whileInView={{ y: 0, opacity: 1 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          {new Date(schedule.date).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </motion.h3>
-
-                        <motion.p
-                          className="text-xl text-gray-700 mb-3 flex items-center space-x-2"
-                          initial={{ y: 20, opacity: 0 }}
-                          whileInView={{ y: 0, opacity: 1 }}
-                          transition={{ delay: index * 0.1 + 0.1 }}
-                        >
-                          <span>📍</span>
-                          <span>{schedule.location}{schedule.state ? `, ${schedule.state}` : ''}</span>
-                        </motion.p>
-
-                        <motion.p
-                          className="text-lg text-orange-600 font-semibold flex items-center space-x-2"
-                          initial={{ y: 20, opacity: 0 }}
-                          whileInView={{ y: 0, opacity: 1 }}
-                          transition={{ delay: index * 0.1 + 0.2 }}
-                        >
-                          <span>🕒</span>
-                          <span>{schedule.startTime} - {schedule.endTime}</span>
-                        </motion.p>
-
-                        {schedule.notes && (
-                          <motion.p
-                            className="text-sm text-gray-600 mt-4 italic bg-white/50 p-3 rounded-lg"
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            transition={{ delay: index * 0.1 + 0.3 }}
-                          >
-                            💭 {schedule.notes}
-                          </motion.p>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
               )}
             </AnimatePresence>
 
@@ -605,12 +520,7 @@ const Home = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <motion.div
-                className="relative inline-block group"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {/* <div className="absolute -inset-1 bg-gradient-to-r from-orange-400 to-red-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div> */}
+              <motion.div className="relative inline-block group" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
                   to="/schedule/week"
                   className="relative px-8 py-4 bg-white text-orange-600 rounded-full text-lg font-bold shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center space-x-2"
@@ -622,17 +532,15 @@ const Home = () => {
             </motion.div>
           </motion.section>
 
+          {/* What People Say Section */}
           <motion.section
             className="py-20 relative"
             variants={itemVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-200px" }}
           >
-            <motion.div
-              className="text-center mb-16"
-              variants={itemVariants}
-            >
+            <motion.div className="text-center mb-16" variants={itemVariants}>
               <motion.h2
                 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-orange-600 via-red-500 to-pink-600 bg-clip-text text-transparent"
                 initial={{ scale: 0.8 }}
@@ -660,23 +568,12 @@ const Home = () => {
                   transition={{ duration: 0.5 }}
                 >
                   <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 via-red-500 to-pink-500"></div>
-
-                  <motion.div
-                    className="text-6xl mb-6"
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2 }}
-                  >
-                    {testimonials[currentTestimonial].image}
-                  </motion.div>
-
+                  <motion.div className="text-6xl mb-6">{testimonials[currentTestimonial].image}</motion.div>
                   <p className="text-xl md:text-2xl text-gray-700 mb-8 leading-relaxed italic font-light">
                     "{testimonials[currentTestimonial].text}"
                   </p>
-
                   <div className="flex items-center justify-center space-x-4">
-                    <h4 className="text-xl font-bold text-orange-600">
-                      {testimonials[currentTestimonial].author}
-                    </h4>
+                    <h4 className="text-xl font-bold text-orange-600">{testimonials[currentTestimonial].author}</h4>
                     <div className="flex text-orange-400">
                       {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
                         <motion.span
@@ -698,9 +595,7 @@ const Home = () => {
                 {testimonials.map((_, index) => (
                   <motion.button
                     key={index}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentTestimonial
-                      ? 'bg-orange-500 scale-125'
-                      : 'bg-gray-300 hover:bg-orange-300'
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentTestimonial ? 'bg-orange-500 scale-125' : 'bg-gray-300 hover:bg-orange-300'
                       }`}
                     onClick={() => setCurrentTestimonial(index)}
                     whileHover={{ scale: 1.2 }}
@@ -714,83 +609,41 @@ const Home = () => {
               {[
                 { text: "The seasonal specials are always incredible! You can taste the creativity in every bite.", author: "David Park", emoji: "👨‍💻" },
                 { text: "Best customer service ever! They remember your name and your favorite order.", author: "Rachel Green", emoji: "👩‍🎨" },
-                { text: "Finally, gourmet food that doesn't break the bank. This truck is a neighborhood gem!", author: "Alex Rivera", emoji: "👨‍🚀" }
+                { text: "Finally, gourmet food that doesn't break the bank. This truck is a neighborhood gem!", author: "Alex Rivera", emoji: "👨‍🚀" },
               ].map((testimonial, index) => (
-                <InteractiveCard
+                <motion.div
                   key={index}
-                  className="bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden"
+                  className="bg-white p-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 relative overflow-hidden"
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
+                  viewport={{ once: true, margin: "-200px" }}
                   transition={{ delay: index * 0.2, duration: 0.6 }}
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-red-500"></div>
-
-                  <motion.div
-                    className="text-4xl mb-4"
-                    animate={{ rotate: [0, -10, 10, 0] }}
-                    transition={{ duration: 3, delay: index * 0.5 }}
-                  >
-                    {testimonial.emoji}
-                  </motion.div>
-
-                  <p className="text-gray-700 mb-6 leading-relaxed italic">
-                    "{testimonial.text}"
-                  </p>
-
+                  <motion.div className="text-4xl mb-4">{testimonial.emoji}</motion.div>
+                  <p className="text-gray-700 mb-6 leading-relaxed italic">"{testimonial.text}"</p>
                   <div className="flex items-center justify-between">
-                    <p className="font-bold text-orange-600 text-lg">
-                      — {testimonial.author}
-                    </p>
+                    <p className="font-bold text-orange-600 text-lg">— {testimonial.author}</p>
                     <div className="flex text-orange-400">
                       {[...Array(5)].map((_, i) => (
                         <span key={i} className="text-lg">⭐</span>
                       ))}
                     </div>
                   </div>
-                </InteractiveCard>
+                </motion.div>
               ))}
             </div>
           </motion.section>
 
+          {/* Our Food Journey Section */}
           <motion.section
             className="relative py-20 mb-20 overflow-hidden rounded-3xl"
             variants={itemVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-200px" }}
           >
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-br from-orange-600 via-red-500 to-pink-600"
-              animate={{
-                background: [
-                  "linear-gradient(135deg, #ea580c, #dc2626, #be185d)",
-                  "linear-gradient(135deg, #dc2626, #be185d, #ea580c)",
-                  "linear-gradient(135deg, #be185d, #ea580c, #dc2626)",
-                  "linear-gradient(135deg, #ea580c, #dc2626, #be185d)"
-                ]
-              }}
-              transition={{ duration: 8 }}
-            />
-
-            <div className="absolute inset-0 overflow-hidden">
-              <motion.div
-                className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full"
-                animate={{ y: [0, -20, 0], rotate: [0, 180, 360] }}
-                transition={{ duration: 6 }}
-              />
-              <motion.div
-                className="absolute top-1/3 right-20 w-16 h-16 bg-white/10 rounded-full"
-                animate={{ y: [0, 20, 0], rotate: [360, 180, 0] }}
-                transition={{ duration: 8 }}
-              />
-              <motion.div
-                className="absolute bottom-20 left-1/4 w-24 h-24 bg-white/10 rounded-full"
-                animate={{ y: [0, -15, 0], rotate: [0, -180, -360] }}
-                transition={{ duration: 7 }}
-              />
-            </div>
-
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-red-500 to-pink-600" />
             <div className="relative z-10 text-center text-white px-8 max-w-6xl mx-auto">
               <motion.div
                 className="text-6xl md:text-7xl mb-8"
@@ -800,7 +653,6 @@ const Home = () => {
               >
                 🚚
               </motion.div>
-
               <motion.h2
                 className="text-4xl sm:text-5xl md:text-6xl font-black mb-8"
                 initial={{ y: 50, opacity: 0 }}
@@ -809,14 +661,12 @@ const Home = () => {
               >
                 Our Food Journey
               </motion.h2>
-
               <motion.div
                 className="w-32 h-1 bg-white/80 mx-auto rounded-full mb-12"
                 initial={{ width: 0 }}
                 whileInView={{ width: "8rem" }}
                 transition={{ duration: 1, delay: 0.5 }}
               />
-
               <motion.p
                 className="text-xl md:text-2xl leading-relaxed max-w-4xl mx-auto mb-12 font-light"
                 initial={{ y: 30, opacity: 0 }}
@@ -828,7 +678,6 @@ const Home = () => {
                 one meal at a time. Our mobile kitchen brings together <span className="font-semibold text-yellow-200">local ingredients</span>,
                 innovative recipes, and the warmth of community dining.
               </motion.p>
-
               <motion.p
                 className="text-lg md:text-xl leading-relaxed max-w-3xl mx-auto mb-12 text-white/90"
                 initial={{ y: 30, opacity: 0 }}
@@ -838,19 +687,13 @@ const Home = () => {
                 Every dish tells a story. Every customer becomes family.
                 Join us on this delicious adventure! 🍽️❤️
               </motion.p>
-
               <motion.div
                 className="flex flex-col sm:flex-row gap-6 justify-center items-center"
                 initial={{ y: 40, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.7, duration: 0.8 }}
               >
-                <motion.div
-                  className="relative group"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div className="absolute -inset-1 bg-white/30 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
+                <motion.div className="relative group" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link
                     to="/menu"
                     className="relative px-8 py-4 bg-white text-orange-600 rounded-full text-lg font-bold shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center space-x-2"
@@ -859,12 +702,7 @@ const Home = () => {
                     <span>Try Our Food</span>
                   </Link>
                 </motion.div>
-
-                <motion.div
-                  className="relative group"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
+                <motion.div className="relative group" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link
                     to="/schedule/week"
                     className="px-8 py-4 border-2 border-white/50 text-white rounded-full text-lg font-bold backdrop-blur-sm hover:bg-white/10 transition-all duration-300 flex items-center space-x-2"
@@ -877,12 +715,13 @@ const Home = () => {
             </div>
           </motion.section>
 
+          {/* Subscribe Section */}
           <motion.section
             className="py-16 text-center"
             variants={itemVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true }}
+            viewport={{ once: true, margin: "-200px" }}
           >
             <motion.div
               className="bg-gradient-to-r from-orange-100 to-red-100 p-12 rounded-3xl shadow-xl max-w-4xl mx-auto"
@@ -896,7 +735,6 @@ const Home = () => {
               >
                 Never Miss Our Stops! 📧
               </motion.h3>
-
               <motion.p
                 className="text-lg text-gray-600 mb-8"
                 initial={{ y: 20, opacity: 0 }}
@@ -905,7 +743,6 @@ const Home = () => {
               >
                 Get notified about our locations, new menu items, and special events
               </motion.p>
-
               <motion.div
                 className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-lg mx-auto"
                 initial={{ y: 20, opacity: 0 }}

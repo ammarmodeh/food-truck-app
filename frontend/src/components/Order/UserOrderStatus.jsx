@@ -48,7 +48,7 @@ const UserOrderStatus = () => {
       setLoading(false);
     }
 
-    socket.on('connect', () => console.log('Socket.io connected'));
+    // socket.on('connect', () => console.log('Socket.io connected'));
     socket.on('orderStatusUpdate', ({ orderId, status }) => {
       setOrders((prev) =>
         prev.map((order) =>
