@@ -337,7 +337,7 @@ const MenuList = () => {
                       </div>
                     ) : (
                       <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                        Please log in to add items to your cart.
+                        Please <a href="/login" className='font-semibold underline hover:text-orange-600 text-orange-500'>login</a> to add items to your cart.
                       </p>
                     )}
                   </div>

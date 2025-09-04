@@ -382,14 +382,6 @@ const Home = () => {
                 whileInView={{ width: "10rem" }}
                 transition={{ duration: 1.2, delay: 0.5 }}
               />
-              <motion.p
-                className="text-xl text-white/60 mt-8 max-w-2xl mx-auto"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                Molecular gastronomy meets street food culture
-              </motion.p>
             </motion.div>
             <AnimatePresence mode="wait">
               {isReady && !loading ? (

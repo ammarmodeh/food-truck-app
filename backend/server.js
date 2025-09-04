@@ -36,6 +36,18 @@ app.set('io', io);
 app.use(cors());
 app.use(express.json());
 
+// Health check endpoint to wake the server
+app.get('/api/health', async (req, res) => {
+  try {
+    // Perform a lightweight database query to warm up the connection
+    await mongoose.connection.db.admin().ping();
+    res.status(200).json({ status: 'ok', message: 'Server is awake', timestamp: new Date() });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to wake server' });
+  }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/orders', orderRoutes);
