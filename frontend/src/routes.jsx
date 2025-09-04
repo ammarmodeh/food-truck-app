@@ -16,6 +16,7 @@ import ForgotPassword from './components/Auth/ForgotPassword';
 import ResetPassword from './components/Auth/ResetPassword';
 import MenuManagement from './components/Menu/MenuManagement';
 import ScheduleManagement from './components/Schedule/ScheduleManagement';
+import ReviewsManagement from './components/Admin/ReviewsManagement';
 import AdminRoute from './components/Admin/AdminRoute';
 
 const router = createBrowserRouter([
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
       {
         path: 'schedule-mgmt',
         element: <AdminRoute><ScheduleManagement /></AdminRoute>,
+      },
+      {
+        path: 'reviews-mgmt',
+        element: <AdminRoute><ReviewsManagement /></AdminRoute>,
       },
       { path: 'orders', element: <UserOrderStatus /> },
       { path: 'menu', element: <MenuList /> },

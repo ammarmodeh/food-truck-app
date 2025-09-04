@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from "react-router-dom";
+import Testimonials from '../components/Testimonials';
 
 const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF6B35;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23F7931E;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='300' fill='url(%23grad1)'/%3E%3Cg transform='translate(200,150)'%3E%3Ccircle r='40' fill='white' opacity='0.9'/%3E%3Ctext x='0' y='8' text-anchor='middle' fill='%23FF6B35' font-size='24' font-family='Arial'%3E🍕%3C/text%3E%3C/g%3E%3C/svg%3E";
 
@@ -9,11 +10,9 @@ const Home = () => {
   const [upcomingSchedule, setUpcomingSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isReady, setIsReady] = useState(false);
   const navigate = useNavigate();
 
-  // Add ref to track mounted state and request count
   const isMounted = useRef(true);
   const requestCount = useRef(0);
 
@@ -28,13 +27,7 @@ const Home = () => {
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 1.2]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
-  // Debug useEffect to track re-renders and network requests
   useEffect(() => {
-    // console.log('Home component rendered. Request count:', requestCount.current);
-  });
-
-  useEffect(() => {
-    // Set up cleanup on unmount
     return () => {
       isMounted.current = false;
     };
@@ -42,24 +35,19 @@ const Home = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Prevent multiple simultaneous requests
       if (requestCount.current > 0) {
-        // console.log('Request already in progress, skipping...');
         return;
       }
 
       requestCount.current++;
-      // console.log('Starting network request #', requestCount.current);
-
       try {
         setLoading(true);
         setError(null);
 
         const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 1500));
 
-        // Fetch menu items from the API with AbortController for cleanup
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         const menuResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/menu`, {
           method: 'GET',
@@ -84,7 +72,6 @@ const Home = () => {
           image: item.image || fallbackImage,
         }));
 
-        // Fetch current location from the API
         const locationController = new AbortController();
         const locationTimeoutId = setTimeout(() => locationController.abort(), 10000);
 
@@ -112,19 +99,15 @@ const Home = () => {
           }];
         } else {
           console.warn('Failed to fetch location data, using empty schedule');
-          // Don't throw error for location - it's less critical than menu
         }
 
         await minLoadingTime;
 
-        // Only update state if component is still mounted
         if (isMounted.current) {
           setFeaturedMenu(formattedMenu.slice(0, 3));
           setUpcomingSchedule(formattedSchedule.slice(0, 3));
-          // console.log('Data loaded successfully');
         }
       } catch (err) {
-        // Only update state if component is still mounted
         if (isMounted.current) {
           console.error('API Error:', err);
           setError(err.message);
@@ -132,7 +115,6 @@ const Home = () => {
           setUpcomingSchedule([]);
         }
       } finally {
-        // Only update state if component is still mounted
         if (isMounted.current) {
           setLoading(false);
         }
@@ -141,7 +123,7 @@ const Home = () => {
     };
 
     fetchData();
-  }, []); // Empty dependency array - runs only once on mount
+  }, []);
 
   useEffect(() => {
     if (!loading) {
@@ -154,41 +136,10 @@ const Home = () => {
     }
   }, [loading]);
 
-  // useEffect(() => {
-  //   const testimonialInterval = setInterval(() => {
-  //     setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-  //   }, 5000);
-  //   return () => clearInterval(testimonialInterval);
-  // }, []);
-
   const handleImageError = (e, setImage) => {
     e.target.onerror = null;
     setImage(fallbackImage);
   };
-
-  const testimonials = [
-    {
-      text: "This isn't just street food - it's a culinary revolution on wheels! Every bite is perfection.",
-      author: "Elena Rodriguez",
-      role: "Food Critic",
-      rating: 5,
-      avatar: "🍴",
-    },
-    {
-      text: "I've traveled the world for food, and this truck serves dishes that rival Michelin-starred restaurants.",
-      author: "James Chen",
-      role: "Travel Blogger",
-      rating: 5,
-      avatar: "✈️",
-    },
-    {
-      text: "The innovation and quality here is unmatched. They've redefined what food trucks can be.",
-      author: "Sofia Martinez",
-      role: "Chef",
-      rating: 5,
-      avatar: "👩‍🍳",
-    },
-  ];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -269,19 +220,14 @@ const Home = () => {
           className="relative flex items-center justify-center min-h-[calc(100vh-72px)] overflow-hidden"
           style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
         >
-          {/* Background Image with Blur */}
           <div
             className="absolute inset-0 z-0 bg-[url('/fb-photo.jpg')] bg-cover bg-center bg-no-repeat"
             style={{
               filter: 'blur(8px)',
-              transform: 'scale(1.1)' // Prevents edges from showing due to blur
+              transform: 'scale(1.1)'
             }}
           />
-
-          {/* Overlay to improve text readability */}
           <div className="absolute inset-0 z-1 bg-black/30" />
-
-          {/* Content */}
           <div className="relative z-10 text-center w-full max-w-7xl mx-auto px-4">
             <motion.h1
               className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-8"
@@ -643,145 +589,7 @@ const Home = () => {
         </motion.section>
 
         {/* Testimonials Section */}
-        <motion.section
-          className="py-32 relative"
-          variants={itemVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <div className="container mx-auto px-6">
-            <motion.div className="text-center mb-20" variants={itemVariants}>
-              <motion.h2
-                className="text-5xl sm:text-6xl md:text-7xl font-black mb-8 bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent"
-                initial={{ scale: 0.5 }}
-                whileInView={{ scale: 1 }}
-                transition={{ duration: 0.8, type: "spring" }}
-              >
-                TASTE TESTIMONIALS
-              </motion.h2>
-              <motion.div
-                className="w-40 h-1 bg-gradient-to-r from-pink-400 to-cyan-500 mx-auto rounded-full"
-                initial={{ width: 0 }}
-                whileInView={{ width: "10rem" }}
-                transition={{ duration: 1.2, delay: 0.5 }}
-              />
-            </motion.div>
-            <motion.div
-              className="max-w-5xl mx-auto mb-20"
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentTestimonial}
-                  className="relative bg-gradient-to-br from-slate-900/70 via-slate-800/70 to-slate-900/70 backdrop-blur-2xl border border-white/10 p-12 rounded-3xl shadow-2xl text-center overflow-hidden"
-                  initial={{ opacity: 0, y: 100, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -100, scale: 0.8 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-purple-500/5 to-cyan-500/5" />
-                  <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-pink-400 via-purple-500 to-cyan-500"></div>
-                  <motion.div
-                    className="text-8xl mb-8 filter drop-shadow-lg"
-                    animate={{
-                      rotate: [0, 10, -10, 0],
-                      scale: [1, 1.1, 1]
-                    }}
-                    transition={{ duration: 4, repeat: Infinity }}
-                  >
-                    {testimonials[currentTestimonial].avatar}
-                  </motion.div>
-                  <motion.p
-                    className="text-2xl md:text-3xl text-white mb-8 leading-relaxed italic font-light"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    "{testimonials[currentTestimonial].text}"
-                  </motion.p>
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="flex text-yellow-400 text-2xl">
-                      {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                        <motion.span
-                          key={i}
-                          initial={{ opacity: 0, scale: 0 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.3 + i * 0.1, duration: 0.3 }}
-                        >
-                          ⭐
-                        </motion.span>
-                      ))}
-                    </div>
-                    <div className="text-center">
-                      <h4 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                        {testimonials[currentTestimonial].author}
-                      </h4>
-                      <p className="text-white/60 text-lg">{testimonials[currentTestimonial].role}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-              <div className="flex justify-center space-x-4 mt-12">
-                {testimonials.map((_, index) => (
-                  <motion.button
-                    key={index}
-                    className={`w-4 h-4 rounded-full transition-all duration-300 ${index === currentTestimonial
-                      ? 'bg-gradient-to-r from-pink-500 to-cyan-500 scale-125 shadow-lg'
-                      : 'bg-white/30 hover:bg-white/50'
-                      }`}
-                    onClick={() => setCurrentTestimonial(index)}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                  />
-                ))}
-              </div>
-            </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-              {[
-                { text: "It's like having a Michelin-starred restaurant that comes to your neighborhood!", author: "Marcus Kim", role: "Food Enthusiast", emoji: "🌟" },
-                { text: "The molecular techniques combined with comfort food is absolutely genius.", author: "Isabella Santos", role: "Culinary Student", emoji: "🧪" },
-                { text: "I've never experienced anything like this. Pure artistry on a plate.", author: "Thomas Wade", role: "Restaurant Owner", emoji: "🎭" },
-              ].map((testimonial, index) => (
-                <motion.div
-                  key={index}
-                  className="relative bg-gradient-to-br from-slate-900/50 via-slate-800/50 to-slate-900/50 backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl overflow-hidden group hover:shadow-pink-500/25 transition-all duration-500"
-                  initial={{ opacity: 0, y: 100 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ delay: index * 0.2, duration: 0.6 }}
-                  whileHover={{ scale: 1.03, rotateY: 5 }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-purple-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-cyan-500"></div>
-                  <div className="relative z-10">
-                    <motion.div
-                      className="text-5xl mb-6 filter drop-shadow-lg"
-                      animate={{ rotate: [0, 10, -10, 0] }}
-                      transition={{ duration: 3, repeat: Infinity, delay: index * 0.5 }}
-                    >
-                      {testimonial.emoji}
-                    </motion.div>
-                    <p className="text-white/90 mb-6 leading-relaxed italic">"{testimonial.text}"</p>
-                    <div className="flex flex-col items-start">
-                      <p className="font-bold text-xl bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
-                        — {testimonial.author}
-                      </p>
-                      <p className="text-white/60">{testimonial.role}</p>
-                      <div className="flex text-yellow-400 mt-2">
-                        {[...Array(5)].map((_, i) => (
-                          <span key={i} className="text-lg">⭐</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
+        <Testimonials isReady={isReady} isPublic={true} />
 
         {/* Our Story Section */}
         <motion.section
@@ -876,80 +684,6 @@ const Home = () => {
                   <span>Join the Movement</span>
                 </span>
               </motion.button>
-            </motion.div>
-          </div>
-        </motion.section>
-
-        {/* Newsletter Section */}
-        <motion.section
-          className="py-20 text-center"
-          variants={itemVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <div className="container mx-auto px-6">
-            <motion.div
-              className="relative bg-gradient-to-br from-slate-900/70 via-slate-800/70 to-slate-900/70 backdrop-blur-2xl border border-white/10 p-16 rounded-3xl shadow-2xl max-w-4xl mx-auto overflow-hidden"
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-pink-500/5" />
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500" />
-              <div className="relative z-10">
-                <motion.div
-                  className="text-7xl mb-8 filter drop-shadow-lg"
-                  animate={{
-                    rotate: [0, 10, -10, 0],
-                    scale: [1, 1.1, 1]
-                  }}
-                  transition={{ duration: 3, repeat: Infinity }}
-                >
-                  🔔
-                </motion.div>
-                <motion.h3
-                  className="text-4xl md:text-5xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-6"
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                >
-                  JOIN THE REVOLUTION
-                </motion.h3>
-                <motion.p
-                  className="text-xl text-white/80 mb-12"
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  Be the first to experience our molecular creations and exclusive locations
-                </motion.p>
-                <motion.div
-                  className="flex flex-col sm:flex-row gap-6 justify-center items-center max-w-2xl mx-auto"
-                  initial={{ y: 30, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <motion.input
-                    type="email"
-                    placeholder="Your email for exclusive updates"
-                    className="flex-1 px-8 py-5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md focus:outline-none focus:border-purple-400 transition-all duration-300 text-white placeholder-white/60 text-center sm:text-left text-lg"
-                    whileFocus={{ scale: 1.02 }}
-                  />
-                  <motion.button
-                    className="group relative px-10 py-5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white rounded-full font-bold shadow-2xl overflow-hidden text-lg"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <span className="relative z-10 flex items-center space-x-2">
-                      <span>Subscribe</span>
-                      <span>🚀</span>
-                    </span>
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100"
-                      transition={{ duration: 0.3 }}
-                    />
-                  </motion.button>
-                </motion.div>
-              </div>
             </motion.div>
           </div>
         </motion.section>

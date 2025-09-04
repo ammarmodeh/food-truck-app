@@ -9,6 +9,7 @@ import menuRoutes from './routes/menuRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import locationRoutes from './routes/locationRoutes.js';
 import scheduleRoutes from './routes/scheduleRoutes.js';
+import testimonialRoutes from './routes/testimonialRoutes.js';
 
 dotenv.config();
 
@@ -53,6 +54,7 @@ app.use('/api/menu', menuRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/schedules', scheduleRoutes);
+app.use('/api/testimonials', testimonialRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))

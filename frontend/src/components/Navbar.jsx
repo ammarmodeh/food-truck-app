@@ -148,6 +148,7 @@ const Navbar = () => {
     { name: 'Orders Mgmt.', icon: '📊', path: '/orders-mgmt' },
     { name: 'Menu Mgmt.', icon: '🍔', path: '/menu-mgmt' },
     { name: 'Schedule Mgmt.', icon: '📅', path: '/schedule-mgmt' },
+    { name: 'Reviews Mgmt.', icon: '⭐', path: '/reviews-mgmt' },
   ];
 
   const navItemVariants = {
