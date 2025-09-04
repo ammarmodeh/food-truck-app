@@ -4,6 +4,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { logout } from '../redux/actions/authActions';
 
+// #1f4499
+
 const Navbar = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -589,12 +591,12 @@ const Navbar = () => {
 
   return (
     <motion.nav
-      className="sticky top-0 z-40 bg-gradient-to-r from-orange-600 via-orange-500 to-red-500 text-white shadow-2xl backdrop-blur-sm h-[72px]"
+      className="sticky top-0 z-40 bg-gradient-to-r from-orange-600 via-orange-500 to-red-500 text-white shadow-3xl backdrop-blur-sm h-[72px]"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, type: 'spring', stiffness: 100 }}
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-gray-800 via-gray-900 to-black"></div>
+      <div className="absolute inset-0 bg-[#1f4499]"></div>
       <div className="relative container mx-auto sm:px-6 h-full">
         <div className="flex justify-between items-center h-full px-4">
           <motion.div

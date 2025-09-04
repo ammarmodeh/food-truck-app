@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
+// #f7a727
+
 const Footer = () => {
   return (
     <motion.footer
@@ -27,7 +29,7 @@ const Footer = () => {
                   <img src="./LogoByeByeEtiquette.svg" alt="" className='w-25' />
                 </Link>
               </motion.div>
-              <h3 className='text-3xl font-bold text-orange-400'>Bye Bye Etiquette</h3>
+              <h3 className='text-3xl font-bold text-[#f7a727]'>Bye Bye Etiquette</h3>
             </motion.div>
             <p className="text-gray-300 text-lg leading-relaxed mb-6">
               Bringing gourmet street food to your neighborhood with passion,
@@ -38,7 +40,7 @@ const Footer = () => {
               {['📘', '📷', '🐦', '📺'].map((icon, index) => (
                 <motion.div
                   key={index}
-                  className="w-12 h-12 bg-orange-400 rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-400 transition-colors"
+                  className="w-12 h-12 bg-[#f7a727] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#f7a727] transition-colors"
                   whileHover={{ scale: 1.2, rotate: 360 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -50,7 +52,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-xl font-bold mb-6 text-orange-400">Quick Links</h4>
+            <h4 className="text-xl font-bold mb-6 text-[#f7a727]">Quick Links</h4>
             <ul className="space-y-3">
               {[
                 { name: 'Menu', path: '/menu' },
@@ -66,7 +68,7 @@ const Footer = () => {
                 >
                   <Link
                     to={link.path}
-                    className="text-gray-300 hover:text-orange-400 transition-colors duration-300"
+                    className="text-gray-300 hover:text-[#f7a727] transition-colors duration-300"
                   >
                     {link.name}
                   </Link>
@@ -77,7 +79,7 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h4 className="text-xl font-bold mb-6 text-orange-400">Get In Touch</h4>
+            <h4 className="text-xl font-bold mb-6 text-[#f7a727]">Get In Touch</h4>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <span className="text-xl">📧</span>
@@ -104,11 +106,11 @@ const Footer = () => {
         >
           <p className="text-gray-400 text-lg">
             &copy; 2025 Food Truck Delight. All rights reserved. |
-            <span className="text-orange-400 hover:text-orange-300 cursor-pointer"> Privacy Policy</span> |
-            <span className="text-orange-400 hover:text-orange-300 cursor-pointer"> Terms of Service</span>
+            <span className="text-[#f7a727] cursor-pointer"> Privacy Policy</span> |
+            <span className="text-[#f7a727] cursor-pointer"> Terms of Service</span>
           </p>
           <motion.p
-            className="text-orange-400 mt-2 font-semibold"
+            className="text-[#f7a727] mt-2 font-semibold"
             animate={{
               textShadow: ["0 0 5px #fb923c", "0 0 20px #fb923c", "0 0 5px #fb923c"]
             }}

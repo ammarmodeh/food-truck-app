@@ -1,9 +1,46 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from "react-router-dom";
+import { Wrapper, Status } from '@googlemaps/react-wrapper';
+import { ArrowRightIcon } from '@heroicons/react/24/solid';
 import Testimonials from '../components/Testimonials';
 
 const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF6B35;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23F7931E;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='300' fill='url(%23grad1)'/%3E%3Cg transform='translate(200,150)'%3E%3Ccircle r='40' fill='white' opacity='0.9'/%3E%3Ctext x='0' y='8' text-anchor='middle' fill='%23FF6B35' font-size='24' font-family='Arial'%3E🍕%3C/text%3E%3C/g%3E%3C/svg%3E";
+
+const renderMap = (status) => {
+  if (status === Status.LOADING)
+    return (
+      <div className="h-64 w-full rounded-3xl bg-gray-200 dark:bg-gray-700 animate-pulse flex items-center justify-center">
+        <span className="text-gray-500 dark:text-gray-400">Loading map...</span>
+      </div>
+    );
+  if (status === Status.FAILURE)
+    return (
+      <div className="h-64 w-full rounded-3xl bg-red-100 dark:bg-red-900 flex items-center justify-center">
+        <span className="text-red-600 dark:text-red-400">Error loading map</span>
+      </div>
+    );
+  return null;
+};
+
+const Map = ({ center }) => {
+  useEffect(() => {
+    if (window.google && window.google.maps && window.google.maps.marker) {
+      const map = new window.google.maps.Map(document.getElementById(`map-${center.lat}`), {
+        center,
+        zoom: 12,
+        mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'your_map_id_here',
+      });
+      new window.google.maps.marker.AdvancedMarkerElement({
+        position: center,
+        map,
+        title: 'Food Truck Delight',
+      });
+    }
+  }, [center]);
+
+  return <div id={`map-${center.lat}`} className="h-64 w-full rounded-3xl" />;
+};
 
 const Home = () => {
   const [featuredMenu, setFeaturedMenu] = useState([]);
@@ -49,6 +86,7 @@ const Home = () => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
+        // Fetch menu items
         const menuResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/menu`, {
           method: 'GET',
           headers: {
@@ -72,40 +110,49 @@ const Home = () => {
           image: item.image || fallbackImage,
         }));
 
-        const locationController = new AbortController();
-        const locationTimeoutId = setTimeout(() => locationController.abort(), 10000);
+        // Fetch schedules for upcoming dates
+        const scheduleController = new AbortController();
+        const scheduleTimeoutId = setTimeout(() => scheduleController.abort(), 10000);
 
-        const locationResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/locations/current`, {
+        const scheduleResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/schedules`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-          signal: locationController.signal
+          signal: scheduleController.signal
         });
 
-        clearTimeout(locationTimeoutId);
+        clearTimeout(scheduleTimeoutId);
 
         let formattedSchedule = [];
-        if (locationResponse.ok) {
-          const locationData = await locationResponse.json();
-          formattedSchedule = [{
-            _id: locationData._id || 'current',
-            date: new Date(locationData.updatedAt || Date.now()),
-            location: locationData.currentLocation || 'Unknown Location',
-            state: 'CA',
-            startTime: '11:00 AM',
-            endTime: '8:00 PM',
-            notes: 'Current location serving now!',
-          }];
+        if (scheduleResponse.ok) {
+          const scheduleData = await scheduleResponse.json();
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Set to start of today for comparison
+
+          // Filter schedules for dates from today onward and sort by date
+          formattedSchedule = scheduleData
+            .filter((item) => new Date(item.date) >= today)
+            .map((item) => ({
+              _id: item._id,
+              date: new Date(item.date),
+              location: item.location || 'Unknown Location',
+              state: item.state || 'CA',
+              startTime: item.startTime || '11:00 AM',
+              endTime: item.endTime || '8:00 PM',
+              // notes: item.notes || 'Join us for delicious food!',
+              coordinates: item.coordinates || null,
+            }))
+            .sort((a, b) => a.date - b.date); // Sort by date ascending
         } else {
-          console.warn('Failed to fetch location data, using empty schedule');
+          console.warn('Failed to fetch schedule data, using empty schedule');
         }
 
         await minLoadingTime;
 
         if (isMounted.current) {
           setFeaturedMenu(formattedMenu.slice(0, 3));
-          setUpcomingSchedule(formattedSchedule.slice(0, 3));
+          setUpcomingSchedule(formattedSchedule.slice(0, 3)); // Limit to 3 upcoming schedules
         }
       } catch (err) {
         if (isMounted.current) {
@@ -198,7 +245,7 @@ const Home = () => {
               {item.description}
             </p>
           )}
-          <p className="text-4xl font-black bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+          <p className="text-4xl font-black text-[#f7a727]">
             ${typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price || 0).toFixed(2)}
           </p>
         </div>
@@ -531,13 +578,46 @@ const Home = () => {
                           </motion.p>
                           {schedule.notes && (
                             <motion.p
-                              className="text-sm text-white/70 italic bg-white/5 p-4 rounded-xl border border-white/10 backdrop-blur-sm"
+                              className="text-sm text-white/70 italic bg-white/5 p-4 rounded-xl border border-white/10 backdrop-blur-sm mb-4"
                               initial={{ opacity: 0 }}
                               whileInView={{ opacity: 1 }}
                               transition={{ delay: index * 0.1 + 0.3 }}
                             >
                               ✨ {schedule.notes}
                             </motion.p>
+                          )}
+                          {schedule.coordinates ? (
+                            <Wrapper
+                              apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+                              render={renderMap}
+                              libraries={['marker']}
+                            >
+                              <Map center={{ lat: schedule.coordinates.lat, lng: schedule.coordinates.lng }} />
+                            </Wrapper>
+                          ) : (
+                            <div className="h-64 w-full rounded-3xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                              <span className="text-gray-500 dark:text-gray-400">No map available</span>
+                            </div>
+                          )}
+                          {schedule.coordinates && (
+                            <motion.div
+                              className="mt-4 text-center"
+                              initial={{ opacity: 0 }}
+                              whileInView={{ opacity: 1 }}
+                              transition={{ delay: index * 0.1 + 0.4 }}
+                            >
+                              <motion.a
+                                href={`https://www.google.com/maps/dir/?api=1&destination=${schedule.coordinates.lat},${schedule.coordinates.lng}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-full font-semibold text-sm"
+                                whileHover={{ scale: 1.05, boxShadow: '0 10px 20px rgba(251, 146, 60, 0.3)' }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <ArrowRightIcon className="h-4 w-4 mr-1" />
+                                Get Directions
+                              </motion.a>
+                            </motion.div>
                           )}
                         </div>
                       </motion.div>
@@ -556,7 +636,8 @@ const Home = () => {
                       <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl">
                         <div className="h-12 bg-gradient-to-r from-slate-600/50 to-slate-500/50 rounded-full mb-6 w-40"></div>
                         <div className="h-6 bg-slate-700/50 rounded-full mb-4"></div>
-                        <div className="h-5 bg-slate-600/50 rounded-full w-48"></div>
+                        <div className="h-5 bg-slate-600/50 rounded-full w-48 mb-4"></div>
+                        <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-3xl"></div>
                       </div>
                     </LoadingSkeleton>
                   ))}
@@ -600,16 +681,9 @@ const Home = () => {
           viewport={{ once: true, margin: "-100px" }}
         >
           <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-purple-900/30 to-slate-950" />
+            {/* <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-purple-900/30 to-slate-950" /> */}
             <motion.div
               className="absolute inset-0 opacity-20"
-              animate={{
-                backgroundImage: [
-                  'radial-gradient(circle at 20% 20%, #06b6d4 0%, transparent 50%), radial-gradient(circle at 80% 80%, #8b5cf6 0%, transparent 50%)',
-                  'radial-gradient(circle at 80% 20%, #06b6d4 0%, transparent 50%), radial-gradient(circle at 20% 80%, #8b5cf6 0%, transparent 50%)',
-                  'radial-gradient(circle at 20% 20%, #06b6d4 0%, transparent 50%), radial-gradient(circle at 80% 80%, #8b5cf6 0%, transparent 50%)',
-                ],
-              }}
               transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
             />
           </div>
@@ -692,4 +766,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Home;  

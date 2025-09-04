@@ -198,7 +198,7 @@ const Testimonials = ({ isReady, isPublic }) => {
             whileInView={{ scale: 1 }}
             transition={{ duration: 0.8, type: "spring" }}
           >
-            TASTE TESTIMONIALS
+            TESTIMONIALS
           </motion.h2>
           <motion.div
             className="w-40 h-1 bg-gradient-to-r from-pink-400 to-cyan-500 mx-auto rounded-full"
