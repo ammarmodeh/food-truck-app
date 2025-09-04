@@ -31,7 +31,7 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-0 sm:p-6">
       <Dashboard />
     </div>
   );

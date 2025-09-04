@@ -191,17 +191,18 @@ const ScheduleManagement = () => {
     >
       <div className="container mx-auto px-6 py-12">
         <motion.h2
-          className="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         >
           Schedule Management
         </motion.h2>
 
+
         {/* Schedule Form */}
         <motion.section className="mb-12" variants={itemVariants}>
-          <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm">
+          <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
             <div className="flex items-center justify-center space-x-3 mb-6">
               <PlusIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
               <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
@@ -347,7 +348,7 @@ const ScheduleManagement = () => {
             </div>
           ) : error ? (
             <motion.div
-              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
               variants={itemVariants}
             >
               <div className="text-6xl mb-4">📅</div>
@@ -364,7 +365,7 @@ const ScheduleManagement = () => {
             </motion.div>
           ) : filteredSchedules.length === 0 ? (
             <motion.div
-              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
               variants={itemVariants}
             >
               <div className="text-6xl mb-4">📅</div>
@@ -380,7 +381,7 @@ const ScheduleManagement = () => {
                   {paginatedSchedules.map((schedule) => (
                     <motion.div
                       key={schedule._id}
-                      className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500"
+                      className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
                       variants={itemVariants}
                       initial="initial"
                       animate="visible"

@@ -183,13 +183,14 @@ const OrdersManagement = () => {
     >
       <div className="container mx-auto px-6 py-12">
         <motion.h2
-          className="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         >
           Orders Management
         </motion.h2>
+
 
         {/* Queue Status */}
         <motion.section className="mb-12" variants={itemVariants}>
@@ -204,7 +205,7 @@ const OrdersManagement = () => {
               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-full animate-pulse"></div>
             </div>
           ) : error ? (
-            <div className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm max-w-2xl mx-auto">
+            <div className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm max-w-2xl mx-auto border-1 border-gray-700">
               <div className="text-6xl mb-4">⏰</div>
               <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Unable to load queue</h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
@@ -219,7 +220,7 @@ const OrdersManagement = () => {
             </div>
           ) : (
             <motion.div
-              className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm max-w-2xl mx-auto text-center"
+              className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm max-w-2xl mx-auto text-center border-1 border-gray-700"
               key={queue.length}
               variants={itemVariants}
               initial="hidden"
@@ -292,7 +293,7 @@ const OrdersManagement = () => {
             </div>
           ) : error ? (
             <motion.div
-              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
               variants={itemVariants}
             >
               <div className="text-6xl mb-4">📋</div>
@@ -309,7 +310,7 @@ const OrdersManagement = () => {
             </motion.div>
           ) : filteredOrders.length === 0 ? (
             <motion.div
-              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
               variants={itemVariants}
             >
               <div className="text-6xl mb-4">🎉</div>
@@ -325,7 +326,7 @@ const OrdersManagement = () => {
                   {paginatedOrders.map((order) => (
                     <motion.div
                       key={order._id}
-                      className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500"
+                      className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
                       variants={itemVariants}
                       initial="initial"
                       animate="visible"

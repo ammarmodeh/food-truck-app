@@ -1,5 +1,4 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
@@ -19,8 +18,16 @@ const Footer = () => {
               className="flex items-center space-x-4 mb-6"
               whileHover={{ scale: 1.05 }}
             >
-              <img src="./LogoByeByeEtiquette.svg" alt="" className='w-25' />
-              <h3 className='text-3xl font-bold text-orange-400'>Food Truck Delight</h3>
+              <motion.div
+                className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-wide border-1 border-white/70 overflow-hidden"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link to="/" className="block">
+                  <img src="./LogoByeByeEtiquette.svg" alt="" className='w-25' />
+                </Link>
+              </motion.div>
+              <h3 className='text-3xl font-bold text-orange-400'>Bye Bye Etiquette</h3>
             </motion.div>
             <p className="text-gray-300 text-lg leading-relaxed mb-6">
               Bringing gourmet street food to your neighborhood with passion,
@@ -31,7 +38,7 @@ const Footer = () => {
               {['📘', '📷', '🐦', '📺'].map((icon, index) => (
                 <motion.div
                   key={index}
-                  className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-400 transition-colors"
+                  className="w-12 h-12 bg-orange-400 rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-400 transition-colors"
                   whileHover={{ scale: 1.2, rotate: 360 }}
                   whileTap={{ scale: 0.9 }}
                 >

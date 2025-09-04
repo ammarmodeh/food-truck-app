@@ -447,7 +447,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-full px-4">
           {/* Logo */}
           <motion.div
-            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-wide"
+            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-wide border-1 border-white/70 overflow-hidden"
             whileHover={{ scale: 1.1, rotate: 5 }}
             whileTap={{ scale: 0.95 }}
           >

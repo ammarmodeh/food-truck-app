@@ -145,12 +145,13 @@ const UserOrderStatus = () => {
     >
       <div className="container mx-auto px-6 py-12">
         <motion.h2
-          className="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16
+              drop-shadow-sm font-serif text-[cornsilk]"
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         >
-          📋 Your Order Status
+          Your Order Status
         </motion.h2>
 
         {loading ? (
@@ -186,15 +187,15 @@ const UserOrderStatus = () => {
             </motion.button>
           </motion.div>
         ) : (
-          <div className="space-y-12">
+          <div className="space-y-12 sm:mt-20">
             {/* Active Orders (Pending, Preparing, Ready) */}
             <motion.div variants={sectionVariants}>
-              <h3 className="text-3xl font-bold mb-6 bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent">
+              <h3 className="text-3xl font-bold mb-6 text-white">
                 Active Orders
               </h3>
               {activeOrders.length === 0 ? (
                 <motion.div
-                  className="text-center py-8 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+                  className="text-center py-8 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
                   variants={itemVariants}
                 >
                   <div className="text-4xl mb-4">📋</div>
@@ -208,7 +209,7 @@ const UserOrderStatus = () => {
                       return (
                         <motion.div
                           key={order._id}
-                          className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500"
+                          className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
                           variants={itemVariants}
                           initial="hidden"
                           animate="visible"
@@ -279,12 +280,12 @@ const UserOrderStatus = () => {
 
             {/* Received Orders (Delivered) */}
             <motion.div variants={sectionVariants}>
-              <h3 className="text-3xl font-bold mb-6 bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent">
+              <h3 className="text-3xl font-bold mb-6 text-white">
                 Received Orders
               </h3>
               {receivedOrders.length === 0 ? (
                 <motion.div
-                  className="text-center py-8 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+                  className="text-center py-8 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
                   variants={itemVariants}
                 >
                   <div className="text-4xl mb-4">✅</div>
@@ -296,7 +297,7 @@ const UserOrderStatus = () => {
                     {receivedOrders.map((order) => (
                       <motion.div
                         key={order._id}
-                        className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500"
+                        className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
                         variants={itemVariants}
                         initial="hidden"
                         animate="visible"
@@ -356,12 +357,12 @@ const UserOrderStatus = () => {
 
             {/* Cancelled Orders */}
             <motion.div variants={sectionVariants}>
-              <h3 className="text-3xl font-bold mb-6 bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent">
+              <h3 className="text-3xl font-bold mb-6 text-white">
                 Cancelled Orders
               </h3>
               {cancelledOrders.length === 0 ? (
                 <motion.div
-                  className="text-center py-8 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+                  className="text-center py-8 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
                   variants={itemVariants}
                 >
                   <div className="text-4xl mb-4">❌</div>
@@ -373,7 +374,7 @@ const UserOrderStatus = () => {
                     {cancelledOrders.map((order) => (
                       <motion.div
                         key={order._id}
-                        className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500"
+                        className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
                         variants={itemVariants}
                         initial="hidden"
                         animate="visible"

@@ -135,17 +135,18 @@ const MenuList = () => {
     >
       <div className="container mx-auto px-6 py-12">
         <motion.h2
-          className="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         >
-          🍽️ Our Gourmet Menu
+          Our Gourmet Menu
         </motion.h2>
+
 
         {/* Search and Filters */}
         <motion.div
-          className="flex flex-col gap-4 mb-12 bg-white/80 dark:bg-gray-800/80 p-6 rounded-3xl shadow-lg backdrop-blur-sm"
+          className="flex flex-col gap-4 mb-12 bg-white/80 dark:bg-gray-800/80 p-6 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
           variants={itemVariants}
         >
           {/* Search Input - Full width on all screens */}
@@ -200,7 +201,7 @@ const MenuList = () => {
             {[1, 2, 3, 4, 5, 6].map((_, index) => (
               <motion.div
                 key={index}
-                className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg animate-pulse"
+                className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg animate-pulse border-1 border-gray-700"
                 variants={itemVariants}
               >
                 <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4"></div>
@@ -245,7 +246,7 @@ const MenuList = () => {
               return (
                 <motion.div
                   key={item._id}
-                  className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500"
+                  className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
                   variants={itemVariants}
                   whileHover={{ scale: 1.03, boxShadow: '0 25px 50px rgba(251, 146, 60, 0.2)' }}
                 >
@@ -324,7 +325,7 @@ const MenuList = () => {
                             {cartQty > 0 && (
                               <motion.button
                                 onClick={() => handleRemoveFromCart(item._id)}
-                                className="bg-gradient-to-r from-red-500 to-red-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
+                                className="bg-gradient-to-r from-red-500 to-red-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 border-1 border-gray-700"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                               >

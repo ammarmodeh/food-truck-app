@@ -87,18 +87,19 @@ const ScheduleView = () => {
     >
       <div className="container mx-auto px-6 py-12">
         <motion.h2
-          className="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         >
-          📅 Food Truck Schedule
+          Food Truck Schedule
         </motion.h2>
+
 
         {/* Tabs */}
         <motion.div className="flex justify-center mb-12" variants={itemVariants}>
           <Tab.Group onChange={(index) => setView(index === 0 ? 'week' : 'month')}>
-            <Tab.List className="flex space-x-2 rounded-full bg-white/80 dark:bg-gray-800/80 p-2 shadow-lg backdrop-blur-sm">
+            <Tab.List className="flex space-x-2 rounded-full bg-white/80 dark:bg-gray-800/80 p-2 shadow-lg backdrop-blur-sm border-1 border-gray-700">
               <Tab
                 className={({ selected }) =>
                   `px-6 py-3 rounded-full font-semibold transition-all duration-300 ${selected
@@ -141,7 +142,7 @@ const ScheduleView = () => {
           </div>
         ) : error ? (
           <motion.div
-            className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+            className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
             variants={itemVariants}
           >
             <div className="text-6xl mb-4">📅</div>
@@ -158,7 +159,7 @@ const ScheduleView = () => {
           </motion.div>
         ) : schedules.length === 0 ? (
           <motion.div
-            className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+            className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
             variants={itemVariants}
           >
             <div className="text-6xl mb-4">📅</div>
@@ -171,7 +172,7 @@ const ScheduleView = () => {
               {schedules.map((sch) => (
                 <motion.div
                   key={sch._id}
-                  className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500"
+                  className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
                   variants={itemVariants}
                   initial="initial"
                   animate="visible"

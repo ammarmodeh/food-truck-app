@@ -25,6 +25,7 @@ import {
 } from 'chart.js';
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import * as XLSX from 'xlsx';
+import OrdersTable from '../OrdersTable';
 
 // Register ChartJS components
 ChartJS.register(
@@ -52,7 +53,8 @@ const Dashboard = () => {
     chartData: [],
     topItems: [],
     avgOrderValue: 0,
-    completionRate: 0
+    completionRate: 0,
+    allOrders: []
   });
   const [timeFrame, setTimeFrame] = useState('day'); // 'day', 'week', 'month'
   const [loading, setLoading] = useState(true);
@@ -412,7 +414,7 @@ const Dashboard = () => {
   if (!user || !user.isAdmin) {
     return (
       <motion.div
-        className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+        className="min-h-screen"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -441,23 +443,24 @@ const Dashboard = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+      className="min-h-screen"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="container mx-auto px-6 py-12">
+      <div className={`container mx-auto px-0 py-12 sm:px-6`}>
         <motion.h2
-          className="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-orange-600 to-red-500 bg-clip-text text-transparent"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
         >
           Admin Dashboard
         </motion.h2>
 
+
         <motion.section className="mb-12" variants={itemVariants}>
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-10 sm:mb-6">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
               <ChartBarIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
               <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard Analytics</h3>
@@ -516,7 +519,7 @@ const Dashboard = () => {
               </motion.button>
             </div>
           ) : (
-            <motion.div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm" variants={itemVariants}>
+            <motion.div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700" variants={itemVariants}>
               {/* Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
                 <div className="p-6 bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-800 rounded-2xl shadow-md">
@@ -528,16 +531,6 @@ const Dashboard = () => {
                   <p className="text-lg text-gray-700 dark:text-gray-300">Total Revenue</p>
                   <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">${stats.revenue.toFixed(2)}</p>
                 </div>
-
-                {/* <div className="p-6 bg-gradient-to-r from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-2xl shadow-md">
-                  <p className="text-lg text-gray-700 dark:text-gray-300">Avg Order Value</p>
-                  <p className="text-3xl font-bold text-green-600 dark:text-green-400">${stats.avgOrderValue.toFixed(2)}</p>
-                </div>
-
-                <div className="p-6 bg-gradient-to-r from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 rounded-2xl shadow-md">
-                  <p className="text-lg text-gray-700 dark:text-gray-300">Completion Rate</p>
-                  <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{stats.completionRate.toFixed(1)}%</p>
-                </div> */}
               </div>
 
               {/* Charts Grid */}
@@ -591,9 +584,11 @@ const Dashboard = () => {
           )}
         </motion.section>
 
+        <OrdersTable orders={stats.allOrders || []} />
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <motion.section variants={itemVariants}>
-            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm">
+            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
               <div className="flex items-center justify-center space-x-3 mb-6">
                 <PlusIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                 <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Add Menu Item</h3>
@@ -663,7 +658,7 @@ const Dashboard = () => {
                     value={menuForm.prepTime}
                     onChange={handleMenuChange}
                     placeholder="Prep Time"
-                    className="w-full p-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-full font-semibold"
+                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     min="1"
                   />
                 </div>
@@ -680,7 +675,7 @@ const Dashboard = () => {
           </motion.section>
 
           <motion.section variants={itemVariants}>
-            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm">
+            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
               <div className="flex items-center justify-center space-x-3 mb-6">
                 <PlusIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                 <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Add Schedule</h3>
@@ -777,7 +772,7 @@ const Dashboard = () => {
           </motion.section>
 
           <motion.section variants={itemVariants}>
-            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm">
+            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
               <div className="flex items-center justify-center space-x-3 mb-6">
                 <PlusIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                 <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Update Current Location</h3>
