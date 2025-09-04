@@ -15,12 +15,13 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div className="md:col-span-2">
-            <motion.h3
-              className="text-3xl font-bold mb-4 text-orange-400"
+            <motion.div
+              className="flex items-center space-x-4 mb-6"
               whileHover={{ scale: 1.05 }}
             >
-              🚚 Food Truck Delight
-            </motion.h3>
+              <img src="./LogoByeByeEtiquette.svg" alt="" className='w-25' />
+              <h3 className='text-3xl font-bold text-orange-400'>Food Truck Delight</h3>
+            </motion.div>
             <p className="text-gray-300 text-lg leading-relaxed mb-6">
               Bringing gourmet street food to your neighborhood with passion,
               quality ingredients, and unbeatable flavors. Follow our journey

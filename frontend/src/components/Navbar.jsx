@@ -14,18 +14,23 @@ const Navbar = () => {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [isAdminToolsOpen, setIsAdminToolsOpen] = useState(false);
   const accountMenuRef = useRef(null);
+  const adminToolsRef = useRef(null);
 
   // Effects
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
 
-  // Close account menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (accountMenuRef.current && !accountMenuRef.current.contains(event.target)) {
         setIsAccountMenuOpen(false);
+      }
+      if (adminToolsRef.current && !adminToolsRef.current.contains(event.target)) {
+        setIsAdminToolsOpen(false);
       }
     };
 
@@ -36,25 +41,20 @@ const Navbar = () => {
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsAdminToolsOpen(false);
+    setIsAccountMenuOpen(false);
   }, [location.pathname]);
-
-  // Handlers
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-  };
 
   const handleLogout = () => {
     dispatch(logout());
     navigate('/');
     setIsMobileMenuOpen(false);
     setIsAccountMenuOpen(false);
+    setIsAdminToolsOpen(false);
   };
 
   const getUserInitials = () => {
     if (!user?.name) return '?';
-
     const nameParts = user.name.trim().split(' ');
     if (nameParts.length === 1) {
       return nameParts[0].charAt(0).toUpperCase();
@@ -81,8 +81,12 @@ const Navbar = () => {
 
   const adminItems = [
     { name: 'Admin', icon: '⚙️', path: '/admin' },
+  ];
+
+  const adminToolsItems = [
     { name: 'Orders Mgmt.', icon: '📊', path: '/orders-mgmt' },
     { name: 'Menu Mgmt.', icon: '🍔', path: '/menu-mgmt' },
+    { name: 'Schedule Mgmt.', icon: '📅', path: '/schedule-mgmt' },
   ];
 
   // Animation variants
@@ -91,8 +95,8 @@ const Navbar = () => {
     visible: (index) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: index * 0.1, duration: 0.5 }
-    })
+      transition: { delay: index * 0.1, duration: 0.5 },
+    }),
   };
 
   const mobileMenuVariants = {
@@ -100,13 +104,13 @@ const Navbar = () => {
     visible: {
       opacity: 1,
       height: 'auto',
-      transition: { duration: 0.3, ease: 'easeInOut' }
+      transition: { duration: 0.3, ease: 'easeInOut' },
     },
     exit: {
       opacity: 0,
       height: 0,
-      transition: { duration: 0.2 }
-    }
+      transition: { duration: 0.2 },
+    },
   };
 
   const mobileItemVariants = {
@@ -114,36 +118,40 @@ const Navbar = () => {
     visible: (index) => ({
       opacity: 1,
       x: 0,
-      transition: { delay: index * 0.1, duration: 0.3 }
-    })
+      transition: { delay: index * 0.1, duration: 0.3 },
+    }),
+  };
+
+  const dropdownVariants = {
+    hidden: { opacity: 0, y: -10, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: 'easeOut' } },
+    exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.2 } },
   };
 
   // Component render methods
   const renderNavItem = (item, index, isMobile = false) => {
     const isActive = isActivePath(item.path);
     const baseClasses = isMobile
-      ? "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300"
-      : "flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300";
+      ? 'flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300'
+      : 'flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300';
 
-    const activeClasses = isActive
-      ? "bg-white/30 text-white shadow-lg"
-      : "hover:bg-white/20";
+    const activeClasses = isActive ? 'bg-white/30 text-white shadow-lg' : 'hover:bg-white/20';
 
     const motionProps = isMobile
       ? {
         custom: index,
-        initial: "hidden",
-        animate: "visible",
+        initial: 'hidden',
+        animate: 'visible',
         variants: mobileItemVariants,
-        onClick: () => setIsMobileMenuOpen(false)
+        onClick: () => setIsMobileMenuOpen(false),
       }
       : {
         custom: index,
-        initial: "hidden",
-        animate: "visible",
+        initial: 'hidden',
+        animate: 'visible',
         variants: navItemVariants,
         whileHover: { scale: 1.05 },
-        whileTap: { scale: 0.95 }
+        whileTap: { scale: 0.95 },
       };
 
     return (
@@ -152,7 +160,7 @@ const Navbar = () => {
         className={`${baseClasses} ${activeClasses}`}
         {...motionProps}
       >
-        <span className={isMobile ? "text-xl" : "text-lg"}>{item.icon}</span>
+        <span className={isMobile ? 'text-xl' : 'text-lg'}>{item.icon}</span>
         <Link to={item.path} className="font-medium">
           {item.name}
         </Link>
@@ -171,24 +179,26 @@ const Navbar = () => {
   const renderAuthButtons = (isMobile = false) => {
     if (isAuthenticated) {
       return (
-        <div className={isMobile ? "space-y-0" : "flex items-center space-x-2 ml-4"}>
+        <div className={isMobile ? 'space-y-0' : 'flex items-center space-x-2 ml-4'}>
           {isMobile ? (
             <>
               <motion.div
                 className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/20 transition-all duration-300"
-                custom={mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + infoNavItems.length + (user?.isAdmin ? adminItems.length : 0)}
+                custom={mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + infoNavItems.length + (user?.isAdmin ? adminItems.length + adminToolsItems.length : 0)}
                 initial="hidden"
                 animate="visible"
                 variants={mobileItemVariants}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <span className="text-xl">👤</span>
-                <Link to="/profile" className="font-medium">Profile</Link>
+                <Link to="/profile" className="font-medium">
+                  Profile
+                </Link>
               </motion.div>
               <motion.button
                 onClick={handleLogout}
                 className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-500/20 transition-all duration-300 text-red-200 hover:text-red-100 w-full text-left"
-                custom={mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + infoNavItems.length + (user?.isAdmin ? adminItems.length : 0) + 1}
+                custom={mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + infoNavItems.length + (user?.isAdmin ? adminItems.length + adminToolsItems.length : 0) + 1}
                 initial="hidden"
                 animate="visible"
                 variants={mobileItemVariants}
@@ -207,15 +217,14 @@ const Navbar = () => {
               >
                 {getUserInitials()}
               </motion.button>
-
               <AnimatePresence>
                 {isAccountMenuOpen && (
                   <motion.div
                     className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl py-2 z-50 border border-gray-100 dark:border-gray-700"
-                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={dropdownVariants}
                   >
                     <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                       <p className="text-gray-800 dark:text-white font-semibold flex justify-between items-center">
@@ -226,10 +235,7 @@ const Navbar = () => {
                           </span>
                         )}
                       </p>
-                      <p className="text-sm text-gray-600 truncate">
-                        {user?.email}
-                      </p>
-
+                      <p className="text-sm text-gray-600 truncate">{user?.phone}</p>
                     </div>
                     <Link
                       to="/profile"
@@ -257,8 +263,8 @@ const Navbar = () => {
 
     // Not authenticated
     const buttonClass = isMobile
-      ? "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300"
-      : "px-6 py-2 rounded-full font-semibold transition-all duration-300";
+      ? 'flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300'
+      : 'px-6 py-2 rounded-full font-semibold transition-all duration-300';
 
     const loginButton = isMobile ? (
       <motion.div
@@ -270,7 +276,9 @@ const Navbar = () => {
         onClick={() => setIsMobileMenuOpen(false)}
       >
         <span className="text-xl">🔑</span>
-        <Link to="/login" className="font-medium">Login</Link>
+        <Link to="/login" className="font-medium">
+          Login
+        </Link>
       </motion.div>
     ) : (
       <motion.div
@@ -292,7 +300,9 @@ const Navbar = () => {
         onClick={() => setIsMobileMenuOpen(false)}
       >
         <span className="text-xl">📝</span>
-        <Link to="/register" className="font-medium">Register</Link>
+        <Link to="/register" className="font-medium">
+          Register
+        </Link>
       </motion.div>
     ) : (
       <motion.div
@@ -339,6 +349,23 @@ const Navbar = () => {
               </Link>
             </motion.div>
           ))}
+          <div className="px-4 py-2 text-gray-300 font-semibold">Admin Tools</div>
+          {adminToolsItems.map((item, index) => (
+            <motion.div
+              key={item.name}
+              className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/20 transition-all duration-300 ml-4"
+              custom={mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + infoNavItems.length + adminItems.length + index}
+              initial="hidden"
+              animate="visible"
+              variants={mobileItemVariants}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <span className="text-xl">{item.icon}</span>
+              <Link to={item.path} className="font-medium">
+                {item.name}
+              </Link>
+            </motion.div>
+          ))}
         </div>
       );
     }
@@ -370,28 +397,63 @@ const Navbar = () => {
             </motion.div>
           );
         })}
+        <div className="relative" ref={adminToolsRef}>
+          <motion.button
+            className="flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 hover:bg-white/20"
+            onClick={() => setIsAdminToolsOpen(!isAdminToolsOpen)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <span>🛠️</span>
+            <span className="font-medium">Admin Tools</span>
+          </motion.button>
+          <AnimatePresence>
+            {isAdminToolsOpen && (
+              <motion.div
+                className="absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl py-2 z-50 border border-gray-100 dark:border-gray-700"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={dropdownVariants}
+              >
+                {adminToolsItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className="flex items-center space-x-2 px-4 py-3 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                    onClick={() => setIsAdminToolsOpen(false)}
+                  >
+                    <span>{item.icon}</span>
+                    <span>{item.name}</span>
+                  </Link>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     );
   };
 
   return (
     <motion.nav
-      className="sticky top-0 z-40 bg-gradient-to-r from-orange-600 via-orange-500 to-red-500 text-white shadow-2xl backdrop-blur-sm"
+      className="sticky top-0 z-40 bg-gradient-to-r from-orange-600 via-orange-500 to-red-500 text-white shadow-2xl backdrop-blur-sm h-[72px]"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, type: 'spring', stiffness: 100 }}
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-orange-600/95 to-red-500/95"></div>
-
-      <div className="relative container mx-auto px-4 sm:px-6 py-4">
-        <div className="flex justify-between items-center">
+      <div className="absolute inset-0 bg-gradient-to-r from-gray-800 via-gray-900 to-black"></div>
+      <div className="relative container mx-auto sm:px-6 h-full">
+        <div className="flex justify-between items-center h-full px-4">
           {/* Logo */}
           <motion.div
             className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-wide"
             whileHover={{ scale: 1.1, rotate: 5 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Link to="/" className="block">🚚</Link>
+            <Link to="/" className="block">
+              <img src="/LogoByeByeEtiquette.svg" alt="Logo" className="w-25" />
+            </Link>
           </motion.div>
 
           {/* Desktop Navigation */}
@@ -399,7 +461,9 @@ const Navbar = () => {
             {mainNavItems.map((item, index) => renderNavItem(item, index))}
             {isAuthenticated && userNavItems.map((item, index) => renderNavItem(item, mainNavItems.length + index))}
             <div className="flex items-center space-x-2 ml-2 pl-2 border-l border-white/30">
-              {infoNavItems.map((item, index) => renderNavItem(item, mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + index))}
+              {infoNavItems.map((item, index) =>
+                renderNavItem(item, mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + index)
+              )}
             </div>
             {renderAdminSection()}
             {renderAuthButtons()}
@@ -418,7 +482,7 @@ const Navbar = () => {
                 className="w-full h-0.5 bg-white rounded"
                 animate={{
                   rotate: isMobileMenuOpen ? 45 : 0,
-                  y: isMobileMenuOpen ? 6 : 0
+                  y: isMobileMenuOpen ? 6 : 0,
                 }}
                 transition={{ duration: 0.2 }}
               />
@@ -431,7 +495,7 @@ const Navbar = () => {
                 className="w-full h-0.5 bg-white rounded"
                 animate={{
                   rotate: isMobileMenuOpen ? -45 : 0,
-                  y: isMobileMenuOpen ? -6 : 0
+                  y: isMobileMenuOpen ? -6 : 0,
                 }}
                 transition={{ duration: 0.2 }}
               />
@@ -443,7 +507,7 @@ const Navbar = () => {
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
-              className="lg:hidden mt-4 py-4 border-t border-white/20"
+              className="lg:hidden w-full py-4 border-t border-white/20 bg-gradient-to-r from-gray-800 via-gray-900 to-black"
               initial="hidden"
               animate="visible"
               exit="exit"
@@ -453,7 +517,9 @@ const Navbar = () => {
                 {mainNavItems.map((item, index) => renderNavItem(item, index, true))}
                 {isAuthenticated && userNavItems.map((item, index) => renderNavItem(item, mainNavItems.length + index, true))}
                 <div className="pt-2 border-t border-white/20 mt-2">
-                  {infoNavItems.map((item, index) => renderNavItem(item, mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + index, true))}
+                  {infoNavItems.map((item, index) =>
+                    renderNavItem(item, mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + index, true)
+                  )}
                 </div>
                 {renderAdminSection(true)}
                 <div className="pt-2 border-t border-white/20 mt-2">

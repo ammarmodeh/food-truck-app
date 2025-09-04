@@ -13,6 +13,10 @@ const Home = () => {
   const [isReady, setIsReady] = useState(false);
   const navigate = useNavigate();
 
+  // Add ref to track mounted state and request count
+  const isMounted = useRef(true);
+  const requestCount = useRef(0);
+
   const heroRef = useRef(null);
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -24,21 +28,48 @@ const Home = () => {
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 1.2]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
+  // Debug useEffect to track re-renders and network requests
+  useEffect(() => {
+    // console.log('Home component rendered. Request count:', requestCount.current);
+  });
+
+  useEffect(() => {
+    // Set up cleanup on unmount
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
+      // Prevent multiple simultaneous requests
+      if (requestCount.current > 0) {
+        // console.log('Request already in progress, skipping...');
+        return;
+      }
+
+      requestCount.current++;
+      // console.log('Starting network request #', requestCount.current);
+
       try {
         setLoading(true);
         setError(null);
 
         const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 1500));
 
-        // Fetch menu items from the API
+        // Fetch menu items from the API with AbortController for cleanup
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
         const menuResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/menu`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
+          signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         if (!menuResponse.ok) {
           throw new Error('Failed to fetch menu items');
@@ -54,12 +85,18 @@ const Home = () => {
         }));
 
         // Fetch current location from the API
+        const locationController = new AbortController();
+        const locationTimeoutId = setTimeout(() => locationController.abort(), 10000);
+
         const locationResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/locations/current`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
+          signal: locationController.signal
         });
+
+        clearTimeout(locationTimeoutId);
 
         let formattedSchedule = [];
         if (locationResponse.ok) {
@@ -68,43 +105,61 @@ const Home = () => {
             _id: locationData._id || 'current',
             date: new Date(locationData.updatedAt || Date.now()),
             location: locationData.currentLocation || 'Unknown Location',
-            state: 'CA', // Default, as state is not provided by the backend
-            startTime: '11:00 AM', // Default, as not provided
-            endTime: '8:00 PM', // Default, as not provided
+            state: 'CA',
+            startTime: '11:00 AM',
+            endTime: '8:00 PM',
             notes: 'Current location serving now!',
           }];
         } else {
-          throw new Error('Failed to fetch location data');
+          console.warn('Failed to fetch location data, using empty schedule');
+          // Don't throw error for location - it's less critical than menu
         }
 
         await minLoadingTime;
-        setFeaturedMenu(formattedMenu.slice(0, 3));
-        setUpcomingSchedule(formattedSchedule.slice(0, 3));
+
+        // Only update state if component is still mounted
+        if (isMounted.current) {
+          setFeaturedMenu(formattedMenu.slice(0, 3));
+          setUpcomingSchedule(formattedSchedule.slice(0, 3));
+          // console.log('Data loaded successfully');
+        }
       } catch (err) {
-        console.error('API Error:', err);
-        setError(err.message);
-        setFeaturedMenu([]);
-        setUpcomingSchedule([]);
+        // Only update state if component is still mounted
+        if (isMounted.current) {
+          console.error('API Error:', err);
+          setError(err.message);
+          setFeaturedMenu([]);
+          setUpcomingSchedule([]);
+        }
       } finally {
-        setLoading(false);
+        // Only update state if component is still mounted
+        if (isMounted.current) {
+          setLoading(false);
+        }
+        requestCount.current = Math.max(0, requestCount.current - 1);
       }
     };
 
     fetchData();
-  }, []);
+  }, []); // Empty dependency array - runs only once on mount
 
   useEffect(() => {
     if (!loading) {
-      setTimeout(() => setIsReady(true), 200);
+      const readyTimer = setTimeout(() => {
+        if (isMounted.current) {
+          setIsReady(true);
+        }
+      }, 200);
+      return () => clearTimeout(readyTimer);
     }
   }, [loading]);
 
-  useEffect(() => {
-    const testimonialInterval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(testimonialInterval);
-  }, []);
+  // useEffect(() => {
+  //   const testimonialInterval = setInterval(() => {
+  //     setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+  //   }, 5000);
+  //   return () => clearInterval(testimonialInterval);
+  // }, []);
 
   const handleImageError = (e, setImage) => {
     e.target.onerror = null;
@@ -211,18 +266,23 @@ const Home = () => {
         {/* Hero Section */}
         <motion.section
           ref={heroRef}
-          className="relative flex items-center justify-center min-h-[calc(100vh-92px)] overflow-hidden"
+          className="relative flex items-center justify-center min-h-[calc(100vh-72px)] overflow-hidden"
           style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
         >
-          <div className="relative z-10 text-center max-w-6xl mx-auto px-6">
-            <motion.div
-              className="mb-8"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ delay: 0.5, duration: 1.2, type: "spring", bounce: 0.6 }}
-            >
-              <div className="text-9xl filter drop-shadow-2xl">🚚</div>
-            </motion.div>
+          {/* Background Image with Blur */}
+          <div
+            className="absolute inset-0 z-0 bg-[url('/fb-photo.jpg')] bg-cover bg-center bg-no-repeat"
+            style={{
+              filter: 'blur(8px)',
+              transform: 'scale(1.1)' // Prevents edges from showing due to blur
+            }}
+          />
+
+          {/* Overlay to improve text readability */}
+          <div className="absolute inset-0 z-1 bg-black/30" />
+
+          {/* Content */}
+          <div className="relative z-10 text-center w-full max-w-7xl mx-auto px-4">
             <motion.h1
               className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-8"
               initial={{ y: 100, opacity: 0 }}
@@ -237,7 +297,7 @@ const Home = () => {
                 transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                 style={{ backgroundSize: '200% 200%' }}
               >
-                CULINARY
+                Bye Bye
               </motion.span>
               <br />
               <motion.span
@@ -248,20 +308,19 @@ const Home = () => {
                 transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: 0.5 }}
                 style={{ backgroundSize: '200% 200%' }}
               >
-                REVOLUTION
+                ETIQUETTE
               </motion.span>
             </motion.h1>
             <motion.p
-              className="text-xl sm:text-2xl md:text-3xl mb-12 text-white/80 max-w-4xl mx-auto leading-relaxed font-light"
+              className="text-xl sm:text-2xl md:text-3xl mb-12 text-white/90 max-w-4xl mx-auto leading-relaxed font-light drop-shadow-md"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 1.5, duration: 1 }}
             >
-              Where gourmet meets the streets. Experience{' '}
+              Good food that{' '}
               <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold">
-                molecular gastronomy
+                goes places.
               </span>{' '}
-              on wheels.
             </motion.p>
             <motion.div
               className="flex flex-col sm:flex-row gap-6 justify-center items-center"
@@ -285,8 +344,8 @@ const Home = () => {
                 />
               </motion.button>
               <motion.button
-                className="group px-12 py-6 border-2 border-white/20 text-white rounded-full text-xl font-bold backdrop-blur-md bg-white/5 hover:bg-white/10 transition-all duration-300"
-                whileHover={{ scale: 1.05, borderColor: "rgba(255, 255, 255, 0.4)" }}
+                className="group px-12 py-6 border-2 border-white/30 text-white rounded-full text-xl font-bold backdrop-blur-sm bg-white/10 hover:bg-white/20 transition-all duration-300"
+                whileHover={{ scale: 1.05, borderColor: "rgba(255, 255, 255, 0.5)" }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/location")}
               >

@@ -26,7 +26,7 @@ const OrdersManagement = () => {
   const [queue, setQueue] = useState({ length: 0, estimatedWait: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('Pending');
+  const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 10;
@@ -63,7 +63,6 @@ const OrdersManagement = () => {
       setLoading(false);
     }
 
-    // socket.on('connect', () => console.log('Socket.io connected'));
     socket.on('queueUpdate', (update) => {
       setQueue(update);
       notify(`Queue updated: ${update.length} orders`, 'info');
@@ -77,7 +76,6 @@ const OrdersManagement = () => {
 
     return () => {
       socket.off('queueUpdate');
-      socket.off('connect');
       socket.off('connect_error');
     };
   }, [notify, socket, user]);
@@ -98,18 +96,27 @@ const OrdersManagement = () => {
     }
   };
 
-  // Filter orders by search query across all statuses
+  // Filter orders by search query and active tab
   const filteredOrders = useMemo(() => {
-    if (!searchQuery) {
-      return orders.filter((order) => order.status === activeTab);
+    let filtered = orders;
+
+    // Apply status filter only if not on "All" tab
+    if (activeTab !== 'All') {
+      filtered = orders.filter((order) => order.status === activeTab);
     }
-    const lowerQuery = searchQuery.toLowerCase();
-    return orders.filter(
-      (order) =>
-        order._id.toLowerCase().includes(lowerQuery) ||
-        order.user?.name.toLowerCase().includes(lowerQuery) ||
-        order.phone.toLowerCase().includes(lowerQuery)
-    );
+
+    // Apply search query filter
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (order) =>
+          order._id.toLowerCase().includes(lowerQuery) ||
+          order.user?.name.toLowerCase().includes(lowerQuery) ||
+          order.phone.toLowerCase().includes(lowerQuery)
+      );
+    }
+
+    return filtered;
   }, [orders, searchQuery, activeTab]);
 
   // Paginate filtered orders
@@ -220,9 +227,6 @@ const OrdersManagement = () => {
               exit={{ opacity: 0, y: 20 }}
             >
               <p className="text-3xl font-semibold text-orange-600 dark:text-orange-400">{queue.length} Orders</p>
-              {/* <p className="text-lg text-gray-600 dark:text-gray-300 mt-2">
-                Estimated Wait: {queue.estimatedWait} minutes
-              </p> */}
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-6 mt-4 overflow-hidden">
                 <motion.div
                   className="bg-gradient-to-r from-orange-500 to-orange-600 h-6 rounded-full"
@@ -251,7 +255,7 @@ const OrdersManagement = () => {
             />
           </div>
           <div className="flex space-x-2 mb-6 overflow-x-auto">
-            {['Pending', 'Preparing', 'Ready', 'Delivered', 'Cancelled'].map((status) => (
+            {['All', 'Pending', 'Preparing', 'Ready', 'Delivered', 'Cancelled'].map((status) => (
               <button
                 key={status}
                 onClick={() => {
@@ -441,7 +445,7 @@ const OrdersManagement = () => {
                               Mark Delivered
                             </motion.button>
                           )}
-                          {['Pending', 'Preparing', 'Ready'].includes(order.status) && (
+                          {['Pending', 'Preparing'].includes(order.status) && (
                             <motion.button
                               onClick={() => updateStatus(order._id, 'Cancelled')}
                               className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-full font-semibold"

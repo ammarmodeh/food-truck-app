@@ -20,7 +20,6 @@ const Cart = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { notify } = useNotification();
-  const [promo, setPromo] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [quantities, setQuantities] = useState(
     cartItems.reduce((acc, item) => ({ ...acc, [item._id]: item.qty }), {})
@@ -34,10 +33,7 @@ const Cart = () => {
   }, [cartItems]);
 
   // Calculate order summary
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
-  const tax = subtotal * 0.1; // 10% tax estimate
-  const discount = promo === 'DISCOUNT10' ? subtotal * 0.1 : 0;
-  const total = subtotal + tax - discount;
+  const total = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
 
   // Handle image loading errors
   const handleImageError = (e) => {
@@ -82,7 +78,7 @@ const Cart = () => {
         }
       );
       dispatch(clearCart());
-      notify('Order placed! Pay cash on arrival. Check your phone for confirmation.', 'success');
+      notify('Order placed! Pay cash on arrival. Personally check your phone for confirmation.', 'success');
       navigate('/orders');
     } catch (err) {
       notify('Failed to place order. Please try again.', 'error');
@@ -228,40 +224,18 @@ const Cart = () => {
             >
               <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Order Summary</h3>
               <div className="space-y-4">
-                <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                  <span>Subtotal:</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                <div className="text-gray-700 dark:text-gray-300">
+                  <h4 className="text-lg font-semibold mb-2">Items:</h4>
+                  <ul className="space-y-2">
+                    {cartItems.map((item) => (
+                      <li key={item._id} className="flex justify-between">
+                        <span>{item.name} (x{item.qty})</span>
+                        <span>${(item.price * item.qty).toFixed(2)}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                  <span>Tax (10%):</span>
-                  <span>${tax.toFixed(2)}</span>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-green-600 dark:text-green-400">
-                    <span>Discount (10%):</span>
-                    <span>-${discount.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-4 mb-4">
-                  <input
-                    type="text"
-                    placeholder="Enter Promo Code"
-                    value={promo}
-                    onChange={(e) => setPromo(e.target.value.toUpperCase())}
-                    className="w-full p-4 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
-                  />
-                  <motion.button
-                    onClick={() =>
-                      promo === 'DISCOUNT10' ? notify('Promo applied!', 'success') : notify('Invalid promo code', 'error')
-                    }
-                    className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 rounded-full font-semibold"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Apply
-                  </motion.button>
-                </div>
-                <div className="flex justify-between text-2xl font-bold text-gray-800 dark:text-white">
+                <div className="flex justify-between text-2xl font-bold text-gray-800 dark:text-white pt-4">
                   <span>Total:</span>
                   <span>${total.toFixed(2)}</span>
                 </div>

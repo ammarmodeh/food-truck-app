@@ -3,23 +3,25 @@ import Schedule from '../models/Schedule.js';
 export const getSchedules = async (req, res) => {
   const { view } = req.query; // 'week' or 'month'
   try {
-    const now = new Date();
-    let startDate, endDate;
-
+    let schedules;
     if (view === 'week') {
-      startDate = new Date(now.setHours(0, 0, 0, 0));
-      endDate = new Date(startDate);
+      const now = new Date();
+      const startDate = new Date(now.setHours(0, 0, 0, 0));
+      const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + 7);
+      schedules = await Schedule.find({
+        date: { $gte: startDate, $lte: endDate },
+      }).sort('date');
     } else if (view === 'month') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const now = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      schedules = await Schedule.find({
+        date: { $gte: startDate, $lte: endDate },
+      }).sort('date');
     } else {
-      return res.status(400).json({ msg: 'Invalid view parameter' });
+      schedules = await Schedule.find().sort('date'); // Fetch all schedules if no view parameter
     }
-
-    const schedules = await Schedule.find({
-      date: { $gte: startDate, $lte: endDate },
-    }).sort('date');
     res.json(schedules);
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });

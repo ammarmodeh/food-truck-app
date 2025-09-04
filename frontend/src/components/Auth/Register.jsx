@@ -1,44 +1,173 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { register } from '../../redux/actions/authActions';
+import { clearErrors, register } from '../../redux/actions/authActions';
 import { motion } from 'framer-motion';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+import { auth } from '../../config/firebaseConfig';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', phone: '' });
+  const [formData, setFormData] = useState({ name: '', password: '', phone: '' });
+  const [otp, setOtp] = useState('');
+  const [showOtpField, setShowOtpField] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [recaptchaError, setRecaptchaError] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, loading } = useSelector((state) => state.auth);
+  const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
+
+  // console.log('Auth object:', auth);
 
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    dispatch(register(formData));
+  const setupRecaptcha = () => {
+    if (!auth) {
+      console.error('Firebase auth is undefined');
+      dispatch({ type: 'REGISTER_FAIL', payload: 'Firebase auth not initialized' });
+      return null;
+    }
+    const container = document.getElementById('recaptcha-container');
+    if (!container) {
+      console.error('reCAPTCHA container not found');
+      dispatch({ type: 'REGISTER_FAIL', payload: 'reCAPTCHA container not found' });
+      return null;
+    }
+    try {
+      // console.log('Initializing RecaptchaVerifier with size: normal');
+      const verifier = new RecaptchaVerifier(
+        auth,
+        'recaptcha-container',
+        {
+          size: 'normal',
+          callback: (response) => {
+            // console.log('reCAPTCHA verified:', response);
+            setRecaptchaError(null);
+          },
+          'expired-callback': () => {
+            // console.log('reCAPTCHA expired');
+            window.recaptchaVerifier = null;
+            setRecaptchaError('reCAPTCHA expired. Please try again.');
+            setTimeout(() => {
+              window.recaptchaVerifier = setupRecaptcha();
+            }, 1000);
+          },
+        }
+      );
+      // console.log('RecaptchaVerifier initialized:', verifier);
+      return verifier;
+    } catch (err) {
+      console.error('Error initializing RecaptchaVerifier:', err.code, err.message);
+      setRecaptchaError(err.message);
+      dispatch({ type: 'REGISTER_FAIL', payload: `Failed to initialize reCAPTCHA: ${err.message}` });
+      return null;
+    }
   };
 
-  if (isAuthenticated) navigate('/');
+  useEffect(() => {
+    let retries = 3;
+    const initializeRecaptcha = () => {
+      if (retries <= 0) {
+        console.error('Max retries reached for reCAPTCHA initialization');
+        dispatch({ type: 'REGISTER_FAIL', payload: 'Failed to initialize reCAPTCHA after multiple attempts' });
+        return;
+      }
+      const verifier = setupRecaptcha();
+      if (verifier) {
+        window.recaptchaVerifier = verifier;
+        // Pre-render reCAPTCHA as per documentation
+        verifier.render().then((widgetId) => {
+          // console.log('reCAPTCHA rendered, widget ID:', widgetId);
+          window.recaptchaWidgetId = widgetId;
+        }).catch((err) => {
+          console.error('Error rendering reCAPTCHA:', err.code, err.message);
+          setRecaptchaError('Failed to render reCAPTCHA');
+        });
+      } else {
+        retries -= 1;
+        console.warn(`Retrying reCAPTCHA initialization (${retries} attempts left)`);
+        setTimeout(initializeRecaptcha, 1000);
+      }
+    };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        delayChildren: 0.2,
-        staggerChildren: 0.1
+    setTimeout(initializeRecaptcha, 100);
+
+    return () => {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        window.recaptchaVerifier = null;
+        window.recaptchaWidgetId = null;
+      }
+    };
+  }, []);
+
+  const requestOtp = async (e) => {
+    e.preventDefault();
+    try {
+      if (!auth) {
+        dispatch({ type: 'REGISTER_FAIL', payload: 'Firebase auth not initialized' });
+        return;
+      }
+      if (!window.recaptchaVerifier) {
+        console.error('reCAPTCHA verifier not available');
+        setRecaptchaError('reCAPTCHA not initialized. Please complete the reCAPTCHA.');
+        dispatch({ type: 'REGISTER_FAIL', payload: 'reCAPTCHA not initialized' });
+        return;
+      }
+      const phoneRegex = /^\+\d{10,15}$/;
+      const phoneNumber = `${formData.phone}`;
+      if (!phoneRegex.test(phoneNumber)) {
+        dispatch({ type: 'REGISTER_FAIL', payload: 'Invalid phone number format. Use + followed by country code and number.' });
+        return;
+      }
+      // console.log('Sending OTP to:', phoneNumber);
+      const result = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+      // console.log('signInWithPhoneNumber result:', result);
+      setConfirmationResult(result);
+      setShowOtpField(true);
+      setRecaptchaError(null);
+    } catch (err) {
+      console.error('Error in requestOtp:', err.code, err.message);
+      dispatch({ type: 'REGISTER_FAIL', payload: `Failed to send OTP: ${err.message}` });
+      // Reset reCAPTCHA on error, as per documentation
+      if (window.recaptchaWidgetId) {
+        window.grecaptcha.reset(window.recaptchaWidgetId);
+      } else if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.render().then((widgetId) => {
+          window.grecaptcha.reset(widgetId);
+        });
       }
     }
   };
 
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (!confirmationResult) {
+      dispatch({ type: 'REGISTER_FAIL', payload: 'Please request OTP first' });
+      return;
+    }
+    try {
+      await confirmationResult.confirm(otp);
+      dispatch(register({ ...formData, phoneVerified: true }));
+    } catch (err) {
+      console.error('Error in onSubmit:', err.code, err.message);
+      dispatch({ type: 'REGISTER_FAIL', payload: `Invalid OTP: ${err.message}` });
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) navigate('/');
+  }, [isAuthenticated, navigate]);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { delayChildren: 0.2, staggerChildren: 0.1 } },
+  };
+
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: 'easeOut' } },
   };
 
   return (
@@ -61,7 +190,32 @@ const Register = () => {
           </p>
         </motion.div>
 
-        <form onSubmit={onSubmit} className="space-y-6">
+        {error && (
+          <motion.div
+            variants={itemVariants}
+            className="mb-6 p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 rounded-xl flex justify-between items-center"
+          >
+            <span>{error}</span>
+            <button
+              type="button"
+              className="text-red-700 dark:text-red-300 hover:text-red-900 dark:hover:text-red-100"
+              onClick={() => dispatch(clearErrors())}
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+
+        {recaptchaError && (
+          <motion.div
+            variants={itemVariants}
+            className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 rounded-xl"
+          >
+            <span>reCAPTCHA issue: {recaptchaError}. Please complete the visible reCAPTCHA.</span>
+          </motion.div>
+        )}
+
+        <form onSubmit={showOtpField ? onSubmit : requestOtp} className="space-y-6">
           <motion.div variants={itemVariants}>
             <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
               Full Name
@@ -77,27 +231,12 @@ const Register = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
-            <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={onChange}
-              placeholder="Enter your email"
-              className="w-full p-4 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
-              required
-            />
-          </motion.div>
-
           <motion.div variants={itemVariants} className="relative">
             <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
               Password
             </label>
             <input
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               name="password"
               value={formData.password}
               onChange={onChange}
@@ -110,11 +249,7 @@ const Register = () => {
               className="absolute right-3 bottom-3 p-1 text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? (
-                <EyeSlashIcon className="h-5 w-5" />
-              ) : (
-                <EyeIcon className="h-5 w-5" />
-              )}
+              {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
             </button>
           </motion.div>
 
@@ -127,30 +262,45 @@ const Register = () => {
               name="phone"
               value={formData.phone}
               onChange={onChange}
-              placeholder="For order confirmations"
+              placeholder="e.g., +16505554567"
               className="w-full p-4 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
               required
             />
           </motion.div>
 
+          {showOtpField && (
+            <motion.div variants={itemVariants}>
+              <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+                OTP
+              </label>
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                placeholder="Enter OTP (e.g., 123456)"
+                className="w-full p-4 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                required
+              />
+            </motion.div>
+          )}
+
+          <div id="recaptcha-container"></div>
+
           <motion.div variants={itemVariants}>
             <motion.button
               type="submit"
               className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl font-semibold shadow-lg"
-              whileHover={{
-                scale: 1.02,
-                boxShadow: "0 10px 25px -10px rgba(249, 115, 22, 0.5)"
-              }}
+              whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -10px rgba(249, 115, 22, 0.5)' }}
               whileTap={{ scale: 0.98 }}
               disabled={loading}
             >
               {loading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-5 h-5 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
-                  Creating account...
+                  {showOtpField ? 'Verifying...' : 'Sending OTP...'}
                 </div>
               ) : (
-                "Create Account"
+                showOtpField ? 'Verify OTP' : 'Send OTP'
               )}
             </motion.button>
           </motion.div>
@@ -158,7 +308,7 @@ const Register = () => {
 
         <motion.div variants={itemVariants} className="mt-6 text-center">
           <p className="text-gray-600 dark:text-gray-400">
-            Already have an account?{" "}
+            Already have an account?{' '}
             <Link
               to="/login"
               className="font-semibold text-orange-600 dark:text-orange-400 hover:underline transition duration-300"

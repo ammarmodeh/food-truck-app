@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ phone: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -19,6 +19,11 @@ const Login = () => {
 
   const onSubmit = (e) => {
     e.preventDefault();
+    const phoneRegex = /^\+\d{10,15}$/;
+    if (!phoneRegex.test(`${formData.phone}`)) {
+      dispatch({ type: 'AUTH_ERROR', payload: 'Invalid phone number format. Use + followed by country code and number.' });
+      return;
+    }
     dispatch(login(formData));
   };
 
@@ -85,14 +90,14 @@ const Login = () => {
         <form onSubmit={onSubmit} className="space-y-6">
           <motion.div variants={itemVariants}>
             <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
-              Email Address
+              Phone Number
             </label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="tel"
+              name="phone"
+              value={formData.phone}
               onChange={onChange}
-              placeholder="Enter your email"
+              placeholder="e.g., +1234567890"
               className="w-full p-4 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
               required
             />

@@ -28,29 +28,26 @@ const ResetPassword = () => {
   };
 
   useEffect(() => {
-    if (message) {
-      setTimeout(() => navigate('/login'), 3000); // Redirect to login after success
+    // Check if token is present
+    if (!token) {
+      navigate('/forgot-password');
+      return;
     }
-  }, [message, navigate]);
+
+    if (message) {
+      const timer = setTimeout(() => navigate('/login'), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message, navigate, token]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        delayChildren: 0.2,
-        staggerChildren: 0.1,
-      },
-    },
+    visible: { opacity: 1, transition: { delayChildren: 0.2, staggerChildren: 0.1 } },
   };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: 'easeOut' } },
   };
 
   return (
@@ -117,11 +114,7 @@ const ResetPassword = () => {
               className="absolute right-3 bottom-3 p-1 text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? (
-                <EyeSlashIcon className="h-5 w-5" />
-              ) : (
-                <EyeIcon className="h-5 w-5" />
-              )}
+              {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
             </button>
           </motion.div>
 
@@ -144,10 +137,7 @@ const ResetPassword = () => {
             <motion.button
               type="submit"
               className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-xl font-semibold shadow-lg"
-              whileHover={{
-                scale: 1.02,
-                boxShadow: '0 10px 25px -10px rgba(249, 115, 22, 0.5)',
-              }}
+              whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -10px rgba(249, 115, 22, 0.5)' }}
               whileTap={{ scale: 0.98 }}
               disabled={loading}
             >

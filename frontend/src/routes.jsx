@@ -15,6 +15,7 @@ import OrdersManagement from './components/Admin/OrdersManagement';
 import ForgotPassword from './components/Auth/ForgotPassword';
 import ResetPassword from './components/Auth/ResetPassword';
 import MenuManagement from './components/Menu/MenuManagement';
+import ScheduleManagement from './components/Schedule/ScheduleManagement';
 import AdminRoute from './components/Admin/AdminRoute';
 
 const router = createBrowserRouter([
@@ -28,15 +29,19 @@ const router = createBrowserRouter([
       { path: 'profile', element: <Profile /> },
       {
         path: 'admin',
-        element: <AdminRoute><AdminPage /></AdminRoute>
+        element: <AdminRoute><AdminPage /></AdminRoute>,
       },
       {
         path: 'orders-mgmt',
-        element: <AdminRoute><OrdersManagement /></AdminRoute>
+        element: <AdminRoute><OrdersManagement /></AdminRoute>,
       },
       {
-        path: "/menu-mgmt",
-        element: <AdminRoute><MenuManagement /></AdminRoute>
+        path: 'menu-mgmt',
+        element: <AdminRoute><MenuManagement /></AdminRoute>,
+      },
+      {
+        path: 'schedule-mgmt',
+        element: <AdminRoute><ScheduleManagement /></AdminRoute>,
       },
       { path: 'orders', element: <UserOrderStatus /> },
       { path: 'menu', element: <MenuList /> },

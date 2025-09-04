@@ -4,20 +4,27 @@ const initialState = {
   user: null,
   error: null,
   message: null,
-  isLoading: true, // Add loading state
+  isLoading: false, // Initialize as false to avoid initial loading state
 };
 
 const authReducer = (state = initialState, action) => {
   switch (action.type) {
+    case 'SET_LOADING':
+      return {
+        ...state,
+        isLoading: action.payload,
+      };
     case 'REGISTER_SUCCESS':
     case 'LOGIN_SUCCESS':
       localStorage.setItem('token', action.payload.token);
       return {
         ...state,
-        ...action.payload,
+        token: action.payload.token,
+        user: action.payload.user,
         isAuthenticated: true,
         error: null,
         message: null,
+        isLoading: false,
       };
     case 'USER_LOADED':
     case 'USER_UPDATED':
@@ -35,6 +42,7 @@ const authReducer = (state = initialState, action) => {
         ...state,
         message: action.payload,
         error: null,
+        isLoading: false,
       };
     case 'LOGIN_FAIL':
     case 'REGISTER_FAIL':
@@ -45,6 +53,7 @@ const authReducer = (state = initialState, action) => {
         ...state,
         error: action.payload,
         message: null,
+        isLoading: false,
       };
     case 'LOGOUT':
     case 'AUTH_ERROR':
@@ -54,7 +63,7 @@ const authReducer = (state = initialState, action) => {
         token: null,
         isAuthenticated: false,
         user: null,
-        error: null,
+        error: action.payload || null,
         message: null,
         isLoading: false,
       };

@@ -4,26 +4,39 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNotification } from '../../context/NotificationContext';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { ChartBarIcon, PlusIcon } from '@heroicons/react/24/solid';
+import {
+  ChartBarIcon,
+  PlusIcon,
+  ArrowDownTrayIcon,
+  CalendarIcon,
+  ArrowsPointingOutIcon
+} from '@heroicons/react/24/solid';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
   Legend,
+  ArcElement,
 } from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line, Pie } from 'react-chartjs-2';
+import * as XLSX from 'xlsx';
 
 // Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ArcElement
 );
 
 const Dashboard = () => {
@@ -33,13 +46,85 @@ const Dashboard = () => {
   const [menuForm, setMenuForm] = useState({ name: '', description: '', price: 0, category: '', image: '', prepTime: 5 });
   const [scheduleForm, setScheduleForm] = useState({ date: '', location: '', state: '', startTime: '', endTime: '', coordinates: { lat: 0, lng: 0 } });
   const [locationForm, setLocationForm] = useState({ currentLocation: '', coordinates: { lat: 0, lng: 0 } });
-  const [stats, setStats] = useState({ orders: 0, revenue: 0, chartData: [] });
+  const [stats, setStats] = useState({
+    orders: 0,
+    revenue: 0,
+    chartData: [],
+    topItems: [],
+    avgOrderValue: 0,
+    completionRate: 0
+  });
+  const [timeFrame, setTimeFrame] = useState('day'); // 'day', 'week', 'month'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const handleMenuChange = (e) => setMenuForm({ ...menuForm, [e.target.name]: e.target.name === 'price' || e.target.name === 'prepTime' ? parseFloat(e.target.value) || 0 : e.target.value });
   const handleScheduleChange = (e) => setScheduleForm({ ...scheduleForm, [e.target.name]: e.target.value });
   const handleLocationChange = (e) => setLocationForm({ ...locationForm, [e.target.name]: e.target.name.includes('coordinates') ? { ...locationForm.coordinates, [e.target.name.split('.')[1]]: parseFloat(e.target.value) || 0 } : e.target.value });
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Function to group data by time frame
+  const groupByTimeFrame = (data, timeFrame) => {
+    const groupedData = {};
+
+    data.forEach(order => {
+      const date = new Date(order.createdAt);
+      let key;
+
+      if (timeFrame === 'day') {
+        key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      } else if (timeFrame === 'week') {
+        // Get week number
+        const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+        const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+        const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+        key = `Week ${weekNumber}, ${date.getFullYear()}`;
+      } else if (timeFrame === 'month') {
+        key = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      }
+
+      if (!groupedData[key]) {
+        groupedData[key] = {
+          total: 0,
+          count: 0,
+          date: key
+        };
+      }
+
+      const orderTotal = typeof order.totalPrice === 'number' ? order.totalPrice : parseFloat(order.totalPrice || 0);
+      groupedData[key].total += orderTotal;
+      groupedData[key].count += 1;
+    });
+
+    return Object.values(groupedData);
+  };
+
+  // Function to get top selling items
+  const getTopSellingItems = (orders) => {
+    const itemCounts = {};
+
+    orders.forEach(order => {
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach(item => {
+          if (item.name) {
+            if (!itemCounts[item.name]) {
+              itemCounts[item.name] = {
+                count: 0,
+                revenue: 0,
+                name: item.name
+              };
+            }
+            itemCounts[item.name].count += item.quantity || 1;
+            const itemPrice = typeof item.price === 'number' ? item.price : parseFloat(item.price || 0);
+            itemCounts[item.name].revenue += (item.quantity || 1) * itemPrice;
+          }
+        });
+      }
+    });
+
+    return Object.values(itemCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5); // Top 5 items
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -49,19 +134,33 @@ const Dashboard = () => {
         const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_API}/api/orders`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
+
         const deliveredOrders = data.filter(order => order.status === 'Delivered');
+        const allOrders = data;
+
         const revenue = deliveredOrders.reduce((acc, order) => acc + (typeof order.totalPrice === 'number' ? order.totalPrice : parseFloat(order.totalPrice || 0)), 0);
-        const chartData = deliveredOrders.reduce((acc, order) => {
-          const date = new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          const existing = acc.find((item) => item.date === date);
-          if (existing) {
-            existing.total += typeof order.totalPrice === 'number' ? order.totalPrice : parseFloat(order.totalPrice || 0);
-          } else {
-            acc.push({ date, total: typeof order.totalPrice === 'number' ? order.totalPrice : parseFloat(order.totalPrice || 0) });
-          }
-          return acc;
-        }, []);
-        setStats({ orders: deliveredOrders.length, revenue, chartData });
+
+        // Calculate average order value
+        const avgOrderValue = deliveredOrders.length > 0 ? revenue / deliveredOrders.length : 0;
+
+        // Calculate order completion rate
+        const completionRate = allOrders.length > 0 ? (deliveredOrders.length / allOrders.length) * 100 : 0;
+
+        // Get chart data based on selected time frame
+        const chartData = groupByTimeFrame(deliveredOrders, timeFrame);
+
+        // Get top selling items
+        const topItems = getTopSellingItems(deliveredOrders);
+
+        setStats({
+          orders: deliveredOrders.length,
+          revenue,
+          chartData,
+          topItems,
+          avgOrderValue,
+          completionRate,
+          allOrders: data
+        });
       } catch (err) {
         setError('Failed to load dashboard stats. Please try again later.');
         notify('Failed to load stats', 'error');
@@ -69,12 +168,13 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
+
     if (user && user.isAdmin) {
       fetchStats();
     } else {
       setLoading(false);
     }
-  }, [user, notify]);
+  }, [user, notify, timeFrame]);
 
   useEffect(() => {
     // Check if user is loaded and is admin
@@ -138,6 +238,36 @@ const Dashboard = () => {
     }
   };
 
+  // Export data to Excel
+  const exportToExcel = () => {
+    if (!stats.allOrders || stats.allOrders.length === 0) {
+      notify('No data to export', 'warning');
+      return;
+    }
+
+    try {
+      // Prepare data for export
+      const worksheetData = stats.allOrders.map(order => ({
+        'Order ID': order._id,
+        'Customer': order.customerName || 'N/A',
+        'Status': order.status,
+        'Total Amount': typeof order.totalPrice === 'number' ? order.totalPrice : parseFloat(order.totalPrice || 0),
+        'Date': new Date(order.createdAt).toLocaleDateString(),
+        'Items': order.items ? order.items.map(item => `${item.name} (x${item.quantity || 1})`).join(', ') : 'N/A'
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Orders');
+
+      // Generate Excel file
+      XLSX.writeFile(workbook, `orders_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+      notify('Data exported successfully!', 'success');
+    } catch (err) {
+      notify('Failed to export data', 'error');
+    }
+  };
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -145,7 +275,7 @@ const Dashboard = () => {
       x: {
         title: {
           display: true,
-          text: 'Date',
+          text: timeFrame === 'day' ? 'Date' : timeFrame === 'week' ? 'Week' : 'Month',
           color: '#4B5563',
           font: {
             weight: 'bold',
@@ -182,12 +312,31 @@ const Dashboard = () => {
         enabled: true,
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
         titleColor: '#fff',
-        bodyColor: '#fff'
+        bodyColor: '#fff',
+        callbacks: {
+          label: function (context) {
+            return `$${context.raw.toFixed(2)}`;
+          }
+        }
       }
     }
   };
 
-  const chartData = {
+  const ordersChartOptions = {
+    ...chartOptions,
+    scales: {
+      ...chartOptions.scales,
+      y: {
+        ...chartOptions.scales.y,
+        title: {
+          ...chartOptions.scales.y.title,
+          text: 'Number of Orders'
+        }
+      }
+    }
+  };
+
+  const revenueChartData = {
     labels: stats.chartData.map(item => item.date),
     datasets: [
       {
@@ -195,6 +344,48 @@ const Dashboard = () => {
         data: stats.chartData.map(item => item.total),
         backgroundColor: 'rgba(249, 115, 22, 0.6)',
         borderColor: 'rgba(249, 115, 22, 1)',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true
+      }
+    ]
+  };
+
+  const ordersChartData = {
+    labels: stats.chartData.map(item => item.date),
+    datasets: [
+      {
+        label: 'Number of Orders',
+        data: stats.chartData.map(item => item.count),
+        backgroundColor: 'rgba(59, 130, 246, 0.6)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true
+      }
+    ]
+  };
+
+  const topItemsChartData = {
+    labels: stats.topItems.map(item => item.name),
+    datasets: [
+      {
+        label: 'Units Sold',
+        data: stats.topItems.map(item => item.count),
+        backgroundColor: [
+          'rgba(249, 115, 22, 0.8)',
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(245, 158, 11, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+        ],
+        borderColor: [
+          'rgba(249, 115, 22, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(245, 158, 11, 1)',
+          'rgba(139, 92, 246, 1)',
+        ],
         borderWidth: 1
       }
     ]
@@ -209,7 +400,6 @@ const Dashboard = () => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
   };
-
 
   if (isCheckingAuth) {
     return (
@@ -267,17 +457,49 @@ const Dashboard = () => {
         </motion.h2>
 
         <motion.section className="mb-12" variants={itemVariants}>
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <ChartBarIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard Stats</h3>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+            <div className="flex items-center space-x-3 mb-4 md:mb-0">
+              <ChartBarIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard Analytics</h3>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <div className="flex items-center space-x-2 bg-white dark:bg-gray-700 rounded-full px-4 py-2 shadow-sm">
+                <CalendarIcon className="h-5 w-5 text-orange-500" />
+                <select
+                  value={timeFrame}
+                  onChange={(e) => setTimeFrame(e.target.value)}
+                  className="bg-transparent border-none outline-none text-gray-700 dark:text-gray-300"
+                >
+                  <option value="day">Daily</option>
+                  <option value="week">Weekly</option>
+                  <option value="month">Monthly</option>
+                </select>
+              </div>
+
+              <motion.button
+                className="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full font-semibold text-sm"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={exportToExcel}
+              >
+                <ArrowDownTrayIcon className="h-5 w-5" />
+                <span>Export Data</span>
+              </motion.button>
+            </div>
           </div>
+
           {loading ? (
             <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
-                <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-28 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+                ))}
               </div>
-              <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+                <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+              </div>
             </div>
           ) : error ? (
             <div className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm">
@@ -295,20 +517,76 @@ const Dashboard = () => {
             </div>
           ) : (
             <motion.div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm" variants={itemVariants}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="p-4 bg-orange-100 dark:bg-orange-900 rounded-2xl">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
+                <div className="p-6 bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-800 rounded-2xl shadow-md">
                   <p className="text-lg text-gray-700 dark:text-gray-300">Delivered Orders</p>
                   <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{stats.orders}</p>
                 </div>
-                <div className="p-4 bg-orange-100 dark:bg-orange-900 rounded-2xl">
+
+                <div className="p-6 bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-2xl shadow-md">
                   <p className="text-lg text-gray-700 dark:text-gray-300">Total Revenue</p>
-                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">${stats.revenue.toFixed(2)}</p>
+                  <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">${stats.revenue.toFixed(2)}</p>
+                </div>
+
+                {/* <div className="p-6 bg-gradient-to-r from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-2xl shadow-md">
+                  <p className="text-lg text-gray-700 dark:text-gray-300">Avg Order Value</p>
+                  <p className="text-3xl font-bold text-green-600 dark:text-green-400">${stats.avgOrderValue.toFixed(2)}</p>
+                </div>
+
+                <div className="p-6 bg-gradient-to-r from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 rounded-2xl shadow-md">
+                  <p className="text-lg text-gray-700 dark:text-gray-300">Completion Rate</p>
+                  <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{stats.completionRate.toFixed(1)}%</p>
+                </div> */}
+              </div>
+
+              {/* Charts Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="bg-white dark:bg-gray-700 p-4 rounded-2xl shadow-md">
+                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Revenue Trend</h4>
+                  <div className="h-64">
+                    <Line data={revenueChartData} options={chartOptions} />
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-700 p-4 rounded-2xl shadow-md">
+                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Orders Trend</h4>
+                  <div className="h-64">
+                    <Line data={ordersChartData} options={ordersChartOptions} />
+                  </div>
                 </div>
               </div>
 
-              <div className="h-64 mt-6">
-                <Bar data={chartData} options={chartOptions} />
-              </div>
+              {/* Top Items Chart */}
+              {stats.topItems && stats.topItems.length > 0 && (
+                <div className="bg-white dark:bg-gray-700 p-4 rounded-2xl shadow-md mt-6">
+                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Top Selling Items</h4>
+                  <div className="h-64">
+                    <Pie data={topItemsChartData} options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'right',
+                          labels: {
+                            color: '#4B5563',
+                            font: {
+                              size: 12
+                            }
+                          }
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function (context) {
+                              return `${context.label}: ${context.raw} units ($${stats.topItems[context.dataIndex].revenue.toFixed(2)})`;
+                            }
+                          }
+                        }
+                      }
+                    }} />
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </motion.section>
@@ -385,7 +663,7 @@ const Dashboard = () => {
                     value={menuForm.prepTime}
                     onChange={handleMenuChange}
                     placeholder="Prep Time"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-full font-semibold"
                     min="1"
                   />
                 </div>
