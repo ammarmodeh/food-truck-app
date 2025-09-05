@@ -321,7 +321,7 @@ const Navbar = () => {
                 <AnimatePresence>
                   {isAccountMenuOpen && (
                     <motion.div
-                      className="absolute right-0 mt-2 w-64 card-gradient-bg rounded-xl shadow-2xl py-2 z-50 border border-gray-700"
+                      className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-xl shadow-2xl py-2 z-50 border border-gray-700"
                       initial="hidden"
                       animate="visible"
                       exit="exit"
@@ -564,7 +564,7 @@ const Navbar = () => {
           <AnimatePresence>
             {isAdminToolsOpen && (
               <motion.div
-                className="absolute left-0 mt-2 w-64 card-gradient-bg rounded-xl shadow-2xl py-2 z-50 border border-gray-700"
+                className="absolute left-0 mt-2 w-64 bg-gray-800 rounded-xl shadow-2xl py-2 z-50 border border-gray-700"
                 initial="hidden"
                 animate="visible"
                 exit="exit"

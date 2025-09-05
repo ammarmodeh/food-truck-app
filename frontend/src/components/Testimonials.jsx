@@ -410,14 +410,14 @@ const Testimonials = ({ isReady, isPublic }) => {
                       </motion.button>
                     ))}
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-center items-center gap-2">
                     <motion.button
                       onClick={handleSubmit}
-                      className="group relative px-8 py-3 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white rounded-full font-bold shadow-2xl overflow-hidden w-full max-w-xs"
+                      className="group relative text-sm sm:text-lg px-4 sm:px-6 py-3 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white rounded-full font-bold shadow-2xl overflow-hidden max-w-xs"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <span className="relative z-10 flex items-center justify-center space-x-2">
+                      <span className={`relative z-10 flex items-center justify-center space-x-2`}>
                         <span>{editingTestimonialId ? 'Update Review' : 'Submit Review'}</span>
                         <span>🚀</span>
                       </span>
@@ -438,7 +438,7 @@ const Testimonials = ({ isReady, isPublic }) => {
                           });
                           setEditingTestimonialId(null);
                         }}
-                        className="group relative px-6 py-3 bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 text-white rounded-full font-bold shadow-2xl overflow-hidden"
+                        className="group relative px-4 sm:px-6 py-3 text-sm sm:text-lg bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 text-white rounded-full font-bold shadow-2xl overflow-hidden"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >

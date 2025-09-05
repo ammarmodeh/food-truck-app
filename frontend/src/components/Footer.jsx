@@ -29,7 +29,7 @@ const Footer = () => {
                   <img src="./LogoByeByeEtiquette.svg" alt="" className='w-25' />
                 </Link>
               </motion.div>
-              <h3 className='text-3xl font-bold text-text-primary'>Bye Bye Etiquette</h3>
+              <h3 className='text-2xl font-bold text-text-primary'>Bye Bye Etiquette</h3>
             </motion.div>
             <p className="text-gray-300 text-lg leading-relaxed mb-6">
               Bringing gourmet street food to your neighborhood with passion,

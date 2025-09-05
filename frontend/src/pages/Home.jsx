@@ -48,10 +48,12 @@ const Home = () => {
   const [upcomingSchedule, setUpcomingSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dataLoaded, setDataLoaded] = useState(false); // New state to track if data was successfully loaded
   const navigate = useNavigate();
 
   const isMounted = useRef(true);
   const requestCount = useRef(0);
+  const dataFetched = useRef(false); // Prevent multiple fetches
 
   const heroRef = useRef(null);
   const containerRef = useRef(null);
@@ -71,8 +73,7 @@ const Home = () => {
     const fetchInitialData = async () => {
       try {
         console.log('Fetching initial data for Home');
-        // Simulate fetch (replace with your actual data fetching logic)
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Reduced timeout
         console.log('Home data fetching complete, setting isReady to true');
         setIsReady(true);
       } catch (err) {
@@ -82,7 +83,7 @@ const Home = () => {
     fetchInitialData();
   }, []);
 
-  console.log('Home rendering, isReady:', isReady, 'isAuthenticated:', isAuthenticated);
+  console.log('Home rendering, isReady:', isReady, 'isAuthenticated:', isAuthenticated, 'dataLoaded:', dataLoaded);
 
   useEffect(() => {
     return () => {
@@ -91,17 +92,18 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (requestCount.current > 0) {
-        return;
-      }
+    // Only fetch data once and if not already fetched
+    if (dataFetched.current || requestCount.current > 0) {
+      return;
+    }
 
+    const fetchData = async () => {
+      dataFetched.current = true; // Mark as fetched immediately to prevent duplicate requests
       requestCount.current++;
+
       try {
         setLoading(true);
         setError(null);
-
-        const minLoadingTime = new Promise((resolve) => setTimeout(resolve, 1500));
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -148,9 +150,8 @@ const Home = () => {
         if (scheduleResponse.ok) {
           const scheduleData = await scheduleResponse.json();
           const today = new Date();
-          today.setHours(0, 0, 0, 0); // Set to start of today for comparison
+          today.setHours(0, 0, 0, 0);
 
-          // Filter schedules for dates from today onward and sort by date
           formattedSchedule = scheduleData
             .filter((item) => new Date(item.date) >= today)
             .map((item) => ({
@@ -160,19 +161,17 @@ const Home = () => {
               state: item.state || 'CA',
               startTime: item.startTime || '11:00 AM',
               endTime: item.endTime || '8:00 PM',
-              // notes: item.notes || 'Join us for delicious food!',
               coordinates: item.coordinates || null,
             }))
-            .sort((a, b) => a.date - b.date); // Sort by date ascending
+            .sort((a, b) => a.date - b.date);
         } else {
           console.warn('Failed to fetch schedule data, using empty schedule');
         }
 
-        await minLoadingTime;
-
         if (isMounted.current) {
           setFeaturedMenu(formattedMenu.slice(0, 3));
-          setUpcomingSchedule(formattedSchedule.slice(0, 3)); // Limit to 3 upcoming schedules
+          setUpcomingSchedule(formattedSchedule.slice(0, 3));
+          setDataLoaded(true); // Mark data as successfully loaded
         }
       } catch (err) {
         if (isMounted.current) {
@@ -180,6 +179,7 @@ const Home = () => {
           setError(err.message);
           setFeaturedMenu([]);
           setUpcomingSchedule([]);
+          dataFetched.current = false; // Reset on error to allow retry
         }
       } finally {
         if (isMounted.current) {
@@ -190,18 +190,7 @@ const Home = () => {
     };
 
     fetchData();
-  }, []);
-
-  useEffect(() => {
-    if (!loading) {
-      const readyTimer = setTimeout(() => {
-        if (isMounted.current) {
-          setIsReady(true);
-        }
-      }, 200);
-      return () => clearTimeout(readyTimer);
-    }
-  }, [loading]);
+  }, []); // Empty dependency array - only run once on mount
 
   const handleImageError = (e, setImage) => {
     e.target.onerror = null;
@@ -299,89 +288,152 @@ const Home = () => {
         initial="hidden"
         animate="visible"
       >
-        {/* Hero Section */}
+        {/* Enhanced Hero Section */}
         <motion.section
           ref={heroRef}
           className="relative flex items-center justify-center min-h-[calc(100vh-72px)] overflow-hidden"
           style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
         >
+          {/* Background with enhanced parallax effect */}
           <div
             className="absolute inset-0 z-0 bg-[url('/fb-photo.jpg')] bg-cover bg-center bg-no-repeat"
             style={{
-              filter: 'blur(8px)',
-              transform: 'scale(1.1)'
+              filter: 'blur(8px) brightness(0.5) contrast(1.2)',
+              // transform: 'scale(1.2)'
             }}
           />
-          <div className="absolute inset-0 z-1 bg-black/30" />
+
           <div className="relative z-10 text-center w-full max-w-7xl mx-auto px-4">
+            {/* Enhanced main title with 3D effect */}
             <motion.h1
-              className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black mb-8"
-              initial={{ y: 100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1, duration: 1.2, ease: "easeOut" }}
+              className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black mb-8 relative"
+              initial={{ y: 100, opacity: 0, rotateX: 90 }}
+              animate={{ y: 0, opacity: 1, rotateX: 0 }}
+              transition={{ delay: 1, duration: 1.5, ease: "easeOut" }}
+              style={{
+                textShadow: '0 10px 30px rgba(0,0,0,0.5), 0 0 60px rgba(6,182,212,0.3)',
+                transform: 'perspective(1000px)'
+              }}
             >
               <motion.span
-                className="inline-block bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
+                className="inline-block bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent relative"
                 animate={{
                   backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
                 }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                style={{ backgroundSize: '200% 200%' }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                style={{
+                  backgroundSize: '400% 400%',
+                  filter: 'drop-shadow(0 0 20px rgba(6,182,212,0.5))'
+                }}
               >
                 Bye Bye
               </motion.span>
               <br />
               <motion.span
-                className="inline-block bg-gradient-to-r from-orange-400 via-red-400 to-pink-500 bg-clip-text text-transparent"
+                className="inline-block bg-gradient-to-r from-orange-400 via-red-400 to-pink-500 bg-clip-text text-transparent relative"
                 animate={{
                   backgroundPosition: ['100% 50%', '0% 50%', '100% 50%'],
                 }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: 0.5 }}
-                style={{ backgroundSize: '200% 200%' }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear", delay: 1 }}
+                style={{
+                  backgroundSize: '400% 400%',
+                  filter: 'drop-shadow(0 0 20px rgba(249,115,22,0.5))'
+                }}
               >
                 ETIQUETTE
               </motion.span>
             </motion.h1>
+
+            {/* Enhanced subtitle with typewriter effect */}
             <motion.p
-              className="text-xl sm:text-2xl md:text-3xl mb-12 text-white/90 max-w-4xl mx-auto leading-relaxed font-light drop-shadow-md"
+              className="text-xl sm:text-2xl md:text-3xl mb-12 text-white max-w-4xl mx-auto leading-relaxed font-light"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1.5, duration: 1 }}
+              transition={{ delay: 1.8, duration: 1 }}
+              style={{
+                textShadow: '0 5px 15px rgba(0,0,0,0.5)',
+                filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.1))'
+              }}
             >
               Good food that{' '}
-              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold">
+              <motion.span
+                className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold relative"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
                 goes places.
-              </span>{' '}
+                <motion.span
+                  className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-purple-400"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ delay: 2.5, duration: 1 }}
+                />
+              </motion.span>
             </motion.p>
+
+            {/* Enhanced CTA buttons with magnetic effect */}
             <motion.div
               className="flex flex-col sm:flex-row gap-6 justify-center items-center"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 2, duration: 1 }}
+              transition={{ delay: 2.2, duration: 1 }}
             >
               <motion.button
-                className="group relative px-12 py-6 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-full text-white text-xl font-bold shadow-2xl overflow-hidden"
-                whileHover={{ scale: 1.05, boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)" }}
+                className="group relative px-10 py-5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-full text-white text-xl font-bold shadow-2xl overflow-hidden border-2 border-transparent"
+                whileHover={{
+                  scale: 1.1,
+                  boxShadow: "0 25px 50px -12px rgba(6,182,212,0.5), 0 0 0 1px rgba(255,255,255,0.1)",
+                  borderColor: "rgba(255,255,255,0.2)"
+                }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/menu")}
+                style={{
+                  background: 'linear-gradient(45deg, #06b6d4, #8b5cf6, #ec4899)',
+                  backgroundSize: '200% 200%'
+                }}
+                animate={{
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+                }}
+                transition={{
+                  backgroundPosition: { duration: 3, repeat: Infinity }
+                }}
               >
                 <span className="relative z-10 flex items-center space-x-3">
-                  <span>🌟</span>
+                  <motion.span
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  >
+                    🌟
+                  </motion.span>
                   <span>Experience Menu</span>
                 </span>
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100"
+                  className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10"
                   transition={{ duration: 0.3 }}
                 />
               </motion.button>
+
               <motion.button
-                className="group px-12 py-6 border-2 border-white/30 text-white rounded-full text-xl font-bold backdrop-blur-sm bg-white/10 hover:bg-white/20 transition-all duration-300"
-                whileHover={{ scale: 1.05, borderColor: "rgba(255, 255, 255, 0.5)" }}
+                className="group px-10 py-5 border-2 border-white/30 text-white rounded-full text-xl font-bold backdrop-blur-sm bg-white/10 overflow-hidden relative"
+                whileHover={{
+                  scale: 1.1,
+                  borderColor: "rgba(255, 255, 255, 0.8)",
+                  boxShadow: "0 15px 35px -5px rgba(255,255,255,0.1)"
+                }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/location")}
               >
-                <span className="flex items-center space-x-3">
-                  <span>📍</span>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100"
+                  transition={{ duration: 0.3 }}
+                />
+                <span className="relative z-10 flex items-center space-x-3">
+                  <motion.span
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    📍
+                  </motion.span>
                   <span>Track Location</span>
                 </span>
               </motion.button>
@@ -389,7 +441,7 @@ const Home = () => {
           </div>
         </motion.section>
 
-        {/* Featured Creations Section */}
+        {/* Featured Creations Section - Show content based on dataLoaded */}
         <motion.section
           className="py-32 relative"
           variants={itemVariants}
@@ -415,7 +467,7 @@ const Home = () => {
               />
             </motion.div>
             <AnimatePresence mode="wait">
-              {isReady && !loading ? (
+              {!loading && dataLoaded ? (
                 error ? (
                   <motion.div
                     className="text-center py-20"
@@ -541,7 +593,7 @@ const Home = () => {
               />
             </motion.div>
             <AnimatePresence mode="wait">
-              {isReady && !loading ? (
+              {!loading && dataLoaded ? (
                 error ? (
                   <motion.div
                     className="text-center py-20"
