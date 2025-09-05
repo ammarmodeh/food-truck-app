@@ -94,7 +94,7 @@ const Navbar = () => {
         headers: { 'Content-Type': 'application/json' },
       });
       const data = await response.json();
-      console.log('Server response:', data);
+      // console.log('Server response:', data);
       if (response.ok) {
         setNotification({ type: 'success', message: 'Server is awake!' });
       } else {

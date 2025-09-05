@@ -7,6 +7,8 @@ import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 import { auth } from '../../config/firebaseConfig';
 
 const ForgotPassword = () => {
+  const [countryCode, setCountryCode] = useState('+1');
+  const [phoneInput, setPhoneInput] = useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [showOtpField, setShowOtpField] = useState(false);
@@ -15,6 +17,19 @@ const ForgotPassword = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error, message } = useSelector((state) => state.auth);
+
+  const onPhoneChange = (e) => {
+    const value = e.target.value.replace(/[^\d]/g, ''); // Allow only digits
+    setPhoneInput(value);
+    setPhone(value ? countryCode + value : '');
+    if (error) dispatch(clearErrors());
+  };
+
+  const onCountryCodeChange = (e) => {
+    const newCode = e.target.value;
+    setCountryCode(newCode);
+    setPhone(phoneInput ? newCode + phoneInput : '');
+  };
 
   const setupRecaptcha = () => {
     if (!auth) {
@@ -31,7 +46,6 @@ const ForgotPassword = () => {
     }
 
     try {
-      // console.log('Initializing RecaptchaVerifier with size: normal');
       const verifier = new RecaptchaVerifier(
         auth,
         'recaptcha-container',
@@ -42,7 +56,6 @@ const ForgotPassword = () => {
             setRecaptchaError(null);
           },
           'expired-callback': () => {
-            // console.log('reCAPTCHA expired');
             window.recaptchaVerifier = null;
             setRecaptchaError('reCAPTCHA expired. Please try again.');
             setTimeout(() => {
@@ -51,7 +64,6 @@ const ForgotPassword = () => {
           },
         }
       );
-      // console.log('RecaptchaVerifier initialized:', verifier);
       return verifier;
     } catch (err) {
       console.error('Error initializing RecaptchaVerifier:', err.code, err.message);
@@ -73,9 +85,7 @@ const ForgotPassword = () => {
       const verifier = setupRecaptcha();
       if (verifier) {
         window.recaptchaVerifier = verifier;
-        // Pre-render reCAPTCHA as per documentation
         verifier.render().then((widgetId) => {
-          // console.log('reCAPTCHA rendered, widget ID:', widgetId);
           window.recaptchaWidgetId = widgetId;
         }).catch((err) => {
           console.error('Error rendering reCAPTCHA:', err.code, err.message);
@@ -114,16 +124,16 @@ const ForgotPassword = () => {
         return;
       }
 
-      const phoneRegex = /^\+\d{10,15}$/;
-      const phoneNumber = `${phone}`;
-      if (!phoneRegex.test(phoneNumber)) {
-        dispatch({ type: 'FORGOT_PASSWORD_FAIL', payload: 'Invalid phone number format. Use + followed by country code and number.' });
+      const phoneRegex = countryCode === '+1' ? /^\+1\d{10}$/ : /^\+962\d{9}$/;
+      if (!phoneRegex.test(phone)) {
+        dispatch({
+          type: 'FORGOT_PASSWORD_FAIL',
+          payload: `Invalid phone number format. Use ${countryCode} followed by ${countryCode === '+1' ? '10-digit' : '9-digit'} number (e.g., ${countryCode === '+1' ? '+12345678901' : '+962123456789'}).`,
+        });
         return;
       }
 
-      // console.log('Sending OTP to:', phoneNumber);
-      const result = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
-      // console.log('signInWithPhoneNumber result:', result);
+      const result = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
       setConfirmationResult(result);
       setShowOtpField(true);
       setRecaptchaError(null);
@@ -131,7 +141,6 @@ const ForgotPassword = () => {
       console.error('Error in requestOtp:', err.code, err.message);
       dispatch({ type: 'FORGOT_PASSWORD_FAIL', payload: `Failed to send OTP: ${err.message}` });
 
-      // Reset reCAPTCHA on error, as per documentation
       if (window.recaptchaWidgetId) {
         window.grecaptcha.reset(window.recaptchaWidgetId);
       } else if (window.recaptchaVerifier) {
@@ -151,10 +160,8 @@ const ForgotPassword = () => {
 
     try {
       await confirmationResult.confirm(otp);
-      // Phone verified, now get the reset token from backend
       const result = await dispatch(forgotPassword({ phone }));
       if (result && result.resetToken) {
-        // Navigate to reset password page with the token
         navigate(`/reset-password/${result.resetToken}`);
       }
     } catch (err) {
@@ -242,14 +249,24 @@ const ForgotPassword = () => {
             <label className="block text-gray-300 font-medium mb-2">
               Phone Number
             </label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="e.g., +16505554567"
-              className="w-full p-4 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
-              required
-            />
+            <div className="flex">
+              <select
+                value={countryCode}
+                onChange={onCountryCodeChange}
+                className="p-4 rounded-l-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+              >
+                <option value="+1">+1 (USA)</option>
+                <option value="+962">+962 (Jordan)</option>
+              </select>
+              <input
+                type="tel"
+                value={phoneInput}
+                onChange={onPhoneChange}
+                placeholder={countryCode === '+1' ? '2345678901' : '123456789'}
+                className="w-full p-4 rounded-r-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                required
+              />
+            </div>
           </motion.div>
 
           {showOtpField && (
