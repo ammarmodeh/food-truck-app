@@ -664,7 +664,7 @@ const Navbar = () => {
               exit="exit"
               variants={mobileMenuVariants}
             >
-              <div className="flex flex-col space-y-1 h-[calc(100vh-72px)] overflow-y-auto py-8">
+              <div className="flex flex-col space-y-1 h-[calc(100vh-72px)] overflow-y-auto py-8 pb-18">
                 {mainNavItems.map((item, index) => renderNavItem(item, index, true))}
                 {isAuthenticated && userNavItems.map((item, index) => renderNavItem(item, mainNavItems.length + index, true))}
                 <div className="pt-2 border-t border-white/20 mt-2">
