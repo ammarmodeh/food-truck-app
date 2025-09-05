@@ -12,7 +12,14 @@ export const protect = async (req, res, next) => {
     if (!req.user) return res.status(401).json({ msg: 'User not found' });
     next();
   } catch (err) {
-    res.status(401).json({ msg: 'Invalid token' });
+    // More specific error messages
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ msg: 'Token expired' });
+    }
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(401).json({ msg: 'Invalid token' });
+    }
+    res.status(401).json({ msg: 'Authorization failed' });
   }
 };
 

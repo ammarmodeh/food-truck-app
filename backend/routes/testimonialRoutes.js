@@ -1,22 +1,23 @@
 import express from 'express';
 import {
-  getTestimonials,
+  getTestimonials, // Make sure this is imported
   addTestimonial,
   updateTestimonial,
   deleteTestimonial,
   verifyTestimonialOwner,
   getPublicTestimonials,
-  getAdminTestimonials // Add this new function
+  getAdminTestimonials
 } from '../controllers/testimonialController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Routes for testimonials CRUD operations
-router.get('/admin', protect, admin, getAdminTestimonials); // Admin access to view all testimonials with pagination and filtering
-router.get('/public', getPublicTestimonials); // Public access to view testimonials
-router.post('/', addTestimonial); // Allow all users (including anonymous) to add testimonials
+router.get('/', protect, getTestimonials); // ADD THIS LINE - Main route for authenticated users
+router.get('/admin', protect, admin, getAdminTestimonials);
+router.get('/public', getPublicTestimonials);
+router.post('/', protect, addTestimonial);
 router.put('/:id', protect, verifyTestimonialOwner, updateTestimonial);
-router.delete('/:id', protect, admin, deleteTestimonial);
+router.delete('/:id', protect, verifyTestimonialOwner, deleteTestimonial);
 
 export default router;

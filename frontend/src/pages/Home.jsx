@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
 import { ArrowRightIcon } from '@heroicons/react/24/solid';
 import Testimonials from '../components/Testimonials';
+import { useSelector } from 'react-redux';
 
 const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF6B35;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23F7931E;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='300' fill='url(%23grad1)'/%3E%3Cg transform='translate(200,150)'%3E%3Ccircle r='40' fill='white' opacity='0.9'/%3E%3Ctext x='0' y='8' text-anchor='middle' fill='%23FF6B35' font-size='24' font-family='Arial'%3E🍕%3C/text%3E%3C/g%3E%3C/svg%3E";
 
@@ -47,7 +48,6 @@ const Home = () => {
   const [upcomingSchedule, setUpcomingSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isReady, setIsReady] = useState(false);
   const navigate = useNavigate();
 
   const isMounted = useRef(true);
@@ -63,6 +63,26 @@ const Home = () => {
   const heroY = useTransform(scrollYProgress, [0, 1], [0, -300]);
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 1.2]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+
+  const [isReady, setIsReady] = useState(false);
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        console.log('Fetching initial data for Home');
+        // Simulate fetch (replace with your actual data fetching logic)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        console.log('Home data fetching complete, setting isReady to true');
+        setIsReady(true);
+      } catch (err) {
+        console.error('Home fetch error:', err);
+      }
+    };
+    fetchInitialData();
+  }, []);
+
+  console.log('Home rendering, isReady:', isReady, 'isAuthenticated:', isAuthenticated);
 
   useEffect(() => {
     return () => {
@@ -252,6 +272,24 @@ const Home = () => {
       </div>
     );
   };
+
+  // Guard against null isAuthenticated to stabilize auth state
+  if (isAuthenticated === null) {
+    console.log('Waiting for authentication state');
+    return (
+      <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white text-center py-20 min-h-screen">
+        <motion.div
+          className="text-9xl mb-8 filter drop-shadow-2xl"
+          animate={{ rotate: [0, -10, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          🕒
+        </motion.div>
+        <h3 className="text-4xl font-bold text-white mb-6">Loading...</h3>
+        <p className="text-white/60 text-xl">Authenticating your session...</p>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
@@ -670,7 +708,7 @@ const Home = () => {
         </motion.section>
 
         {/* Testimonials Section */}
-        <Testimonials isReady={isReady} isPublic={true} />
+        <Testimonials isReady={isReady} isPublic={!isAuthenticated} />
 
         {/* Our Story Section */}
         <motion.section
@@ -681,7 +719,6 @@ const Home = () => {
           viewport={{ once: true, margin: "-100px" }}
         >
           <div className="absolute inset-0">
-            {/* <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-purple-900/30 to-slate-950" /> */}
             <motion.div
               className="absolute inset-0 opacity-20"
               transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
@@ -728,37 +765,6 @@ const Home = () => {
               Every technique borrowed from the world's finest kitchens. Every ingredient sourced with purpose.
               Every meal designed to challenge your expectations and elevate your senses.
             </motion.p>
-            <motion.div
-              className="flex flex-col sm:flex-row gap-8 justify-center items-center"
-              initial={{ y: 80, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.7, duration: 1 }}
-            >
-              <motion.button
-                className="group relative px-12 py-6 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-full text-white text-xl font-bold shadow-2xl overflow-hidden"
-                whileHover={{ scale: 1.05, boxShadow: "0 25px 50px -12px rgba(139, 92, 246, 0.5)" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="relative z-10 flex items-center space-x-3">
-                  <span>🎨</span>
-                  <span>Experience the Art</span>
-                </span>
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100"
-                  transition={{ duration: 0.4 }}
-                />
-              </motion.button>
-              <motion.button
-                className="group px-12 py-6 border-2 border-white/30 text-white rounded-full text-xl font-bold backdrop-blur-md bg-white/5 hover:bg-white/10 transition-all duration-300"
-                whileHover={{ scale: 1.05, borderColor: "rgba(139, 92, 246, 0.8)" }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="flex items-center space-x-3">
-                  <span>📱</span>
-                  <span>Join the Movement</span>
-                </span>
-              </motion.button>
-            </motion.div>
           </div>
         </motion.section>
       </motion.div>
@@ -766,4 +772,4 @@ const Home = () => {
   );
 };
 
-export default Home;  
+export default Home;
