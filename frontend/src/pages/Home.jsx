@@ -269,8 +269,8 @@ const Home = () => {
       <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white text-center py-20 min-h-screen">
         <motion.div
           className="text-9xl mb-8 filter drop-shadow-2xl"
-          animate={{ rotate: [0, -10, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
+        // animate={{ rotate: [0, -10, 10, 0] }}
+        // transition={{ duration: 2, repeat: Infinity }}
         >
           🕒
         </motion.div>
@@ -317,10 +317,6 @@ const Home = () => {
             >
               <motion.span
                 className="inline-block bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent relative"
-                animate={{
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                 style={{
                   backgroundSize: '400% 400%',
                   filter: 'drop-shadow(0 0 20px rgba(6,182,212,0.5))'
@@ -331,10 +327,6 @@ const Home = () => {
               <br />
               <motion.span
                 className="inline-block bg-gradient-to-r from-orange-400 via-red-400 to-pink-500 bg-clip-text text-transparent relative"
-                animate={{
-                  backgroundPosition: ['100% 50%', '0% 50%', '100% 50%'],
-                }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear", delay: 1 }}
                 style={{
                   backgroundSize: '400% 400%',
                   filter: 'drop-shadow(0 0 20px rgba(249,115,22,0.5))'
@@ -358,8 +350,6 @@ const Home = () => {
               Good food that{' '}
               <motion.span
                 className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent font-semibold relative"
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
               >
                 goes places.
                 <motion.span
@@ -379,7 +369,7 @@ const Home = () => {
               transition={{ delay: 2.2, duration: 1 }}
             >
               <motion.button
-                className="group relative px-10 py-5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-full text-white text-xl font-bold shadow-2xl overflow-hidden border-2 border-transparent"
+                className="group relative px-6 py-3 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-full text-white text-xl font-bold shadow-2xl overflow-hidden border-2 border-gray-200"
                 whileHover={{
                   scale: 1.1,
                   boxShadow: "0 25px 50px -12px rgba(6,182,212,0.5), 0 0 0 1px rgba(255,255,255,0.1)",
@@ -391,17 +381,9 @@ const Home = () => {
                   background: 'linear-gradient(45deg, #06b6d4, #8b5cf6, #ec4899)',
                   backgroundSize: '200% 200%'
                 }}
-                animate={{
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
-                }}
-                transition={{
-                  backgroundPosition: { duration: 3, repeat: Infinity }
-                }}
               >
                 <span className="relative z-10 flex items-center space-x-3">
                   <motion.span
-                    animate={{ rotate: [0, 360] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                   >
                     🌟
                   </motion.span>
@@ -414,7 +396,7 @@ const Home = () => {
               </motion.button>
 
               <motion.button
-                className="group px-10 py-5 border-2 border-white/30 text-white rounded-full text-xl font-bold backdrop-blur-sm bg-white/10 overflow-hidden relative"
+                className="group px-9 py-3 border-2 border-white/30 text-white rounded-full text-xl font-bold backdrop-blur-sm bg-white/10 overflow-hidden relative"
                 whileHover={{
                   scale: 1.1,
                   borderColor: "rgba(255, 255, 255, 0.8)",
@@ -429,8 +411,6 @@ const Home = () => {
                 />
                 <span className="relative z-10 flex items-center space-x-3">
                   <motion.span
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
                   >
                     📍
                   </motion.span>
@@ -477,8 +457,8 @@ const Home = () => {
                   >
                     <motion.div
                       className="text-9xl mb-8 filter drop-shadow-2xl"
-                      animate={{ rotate: [0, -10, 10, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                    // animate={{ rotate: [0, -10, 10, 0] }}
+                    // transition={{ duration: 2, repeat: Infinity }}
                     >
                       🔮
                     </motion.div>
@@ -631,8 +611,8 @@ const Home = () => {
                         <div className="relative z-10">
                           <motion.div
                             className="text-6xl mb-6 filter drop-shadow-lg"
-                            animate={{ rotate: [0, 5, -5, 0] }}
-                            transition={{ duration: 3, repeat: Infinity, delay: index * 0.5 }}
+                          // animate={{ rotate: [0, 5, -5, 0] }}
+                          // transition={{ duration: 3, repeat: Infinity, delay: index * 0.5 }}
                           >
                             📍
                           </motion.div>
@@ -773,7 +753,7 @@ const Home = () => {
           <div className="absolute inset-0">
             <motion.div
               className="absolute inset-0 opacity-20"
-              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            // transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
             />
           </div>
           <div className="relative z-10 text-center text-white px-8 max-w-6xl mx-auto">
