@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const Login = () => {
-  const isDevMode = import.meta.env.VITE_NODE_ENV === 'development';
   const [countryCode, setCountryCode] = useState('+1');
   const [phoneInput, setPhoneInput] = useState('');
   const [formData, setFormData] = useState({ phone: '', password: '' });
@@ -112,23 +111,21 @@ const Login = () => {
               Phone Number
             </label>
             <div className="flex">
-              {isDevMode && (
-                <select
-                  value={countryCode}
-                  onChange={onCountryCodeChange}
-                  className="p-4 rounded-l-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
-                >
-                  <option value="+1">+1 (USA)</option>
-                  <option value="+962">+962 (Jordan)</option>
-                </select>
-              )}
+              <select
+                value={countryCode}
+                onChange={onCountryCodeChange}
+                className="p-4 rounded-l-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+              >
+                <option value="+1">+1 (USA)</option>
+                <option value="+962">+962 (Jordan)</option>
+              </select>
               <input
                 type="tel"
                 name="phone"
                 value={phoneInput}
                 onChange={onPhoneChange}
                 placeholder={countryCode === '+1' ? '2345678901' : '123456789'}
-                className={`w-full p-4 ${isDevMode ? 'rounded-r-xl' : 'rounded-xl'} bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300`}
+                className="w-full p-4 rounded-r-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                 required
               />
             </div>
