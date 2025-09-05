@@ -34,10 +34,7 @@ export const placeOrder = async (req, res) => {
 
     const io = req.app.get('io');
     const queueUpdate = { length: queueLength + 1, estimatedWait };
-    // console.log('Emitting queueUpdate (placeOrder):', queueUpdate);
     io.emit('queueUpdate', queueUpdate);
-
-    // console.log(`Order placed for user: ${user.phone}, Order ID: ${order._id}`);
 
     res.json(order);
   } catch (err) {
@@ -61,7 +58,7 @@ export const getAllOrders = async (req, res) => {
     const orders = await Order.find()
       .populate('user', 'name email phone')
       .populate('items.menuItem')
-      .sort({ createdAt: -1 }); // Sort by newest first
+      .sort({ createdAt: -1 });
     res.json(orders);
   } catch (err) {
     console.error('Get all orders error:', err);
@@ -81,6 +78,7 @@ export const updateOrderStatus = async (req, res) => {
     if (status === 'Delivered') order.deliveredAt = Date.now();
     if (status === 'Cancelled') order.cancelledAt = Date.now();
     if (status === 'Ready') order.readyAt = Date.now();
+    if (status === 'Preparing') order.preparingAt = Date.now(); // Added to track when order enters Preparing
     await order.save();
 
     const io = req.app.get('io');
@@ -88,12 +86,12 @@ export const updateOrderStatus = async (req, res) => {
     const pendingOrders = await Order.find({ status: { $in: ['Pending', 'Preparing'] } });
     const estimatedWait = pendingOrders.reduce((total, order) => total + (order.estimatedWait || 5), 0);
     const queueUpdate = { length: queueLength, estimatedWait };
-    // console.log('Emitting queueUpdate (updateOrderStatus):', queueUpdate);
     io.emit('queueUpdate', queueUpdate);
 
-    if (status === 'Ready' || status === 'Delivered' || status === 'Cancelled') {
-      // console.log(`Emitting orderStatusUpdate for user ${order.user}, Order ID: ${id}, Status: ${status}`);
+    // Emit orderStatusUpdate for all relevant status changes
+    if (['Pending', 'Preparing', 'Ready', 'Delivered', 'Cancelled'].includes(status)) {
       io.to(order.user.toString()).emit('orderStatusUpdate', { orderId: id, status });
+      io.emit('orderStatusUpdate', { orderId: id, status }); // Broadcast to all clients (including admins)
     }
 
     res.json(order);
@@ -108,9 +106,7 @@ export const getQueue = async (req, res) => {
     const queueLength = await Order.countDocuments({ status: { $in: ['Pending', 'Preparing'] } });
     const pendingOrders = await Order.find({ status: { $in: ['Pending', 'Preparing'] } });
     const estimatedWait = pendingOrders.reduce((total, order) => total + (order.estimatedWait || 5), 0);
-    const queueUpdate = { length: queueLength, estimatedWait };
-    // console.log('Sending queue data:', queueUpdate);
-    res.json(queueUpdate);
+    res.json({ length: queueLength, estimatedWait });
   } catch (err) {
     console.error('Get queue error:', err);
     res.status(500).json({ msg: 'Server error', error: err.message });

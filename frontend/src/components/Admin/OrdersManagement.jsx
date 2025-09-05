@@ -66,8 +66,28 @@ const OrdersManagement = () => {
     socket.on('queueUpdate', (update) => {
       setQueue(update);
       notify(`Queue updated: ${update.length} orders`, 'info');
-      fetchOrders();
+      fetchOrders(); // Refetch orders to ensure consistency
     });
+
+    socket.on('orderStatusUpdate', ({ orderId, status }) => {
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === orderId
+            ? {
+              ...order,
+              status,
+              updatedAt: new Date(),
+              ...(status === 'Preparing' && { preparingAt: new Date() }),
+              ...(status === 'Ready' && { readyAt: new Date() }),
+              ...(status === 'Delivered' && { deliveredAt: new Date() }),
+              ...(status === 'Cancelled' && { cancelledAt: new Date() }),
+            }
+            : order
+        )
+      );
+      notify(`Order ${orderId.slice(-6)} updated to ${status}`, 'success');
+    });
+
     socket.on('connect_error', (err) => {
       console.error('Socket.io error:', err);
       setError('Connection error. Updates may be delayed.');
@@ -76,6 +96,7 @@ const OrdersManagement = () => {
 
     return () => {
       socket.off('queueUpdate');
+      socket.off('orderStatusUpdate');
       socket.off('connect_error');
     };
   }, [notify, socket, user]);
@@ -100,12 +121,10 @@ const OrdersManagement = () => {
   const filteredOrders = useMemo(() => {
     let filtered = orders;
 
-    // Apply status filter only if not on "All" tab
     if (activeTab !== 'All') {
       filtered = orders.filter((order) => order.status === activeTab);
     }
 
-    // Apply search query filter
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -191,7 +210,6 @@ const OrdersManagement = () => {
           Orders Management
         </motion.h2>
 
-
         {/* Queue Status */}
         <motion.section className="mb-12" variants={itemVariants}>
           <div className="flex items-center justify-center space-x-3 mb-6">
@@ -250,7 +268,7 @@ const OrdersManagement = () => {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setCurrentPage(1); // Reset to first page on search
+                setCurrentPage(1);
               }}
               className="w-full max-w-md p-3 rounded-xl bg-gray-700/50 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
             />
@@ -340,7 +358,7 @@ const OrdersManagement = () => {
                           </h3>
                           <span
                             className={`flex items-center space-x-2 px-3 py-1 rounded-full font-semibold text-sm ${order.status === 'Pending'
-                              ? 'bg-blue-900text-blue-400'
+                              ? 'bg-blue-900 text-blue-400'
                               : order.status === 'Preparing'
                                 ? 'bg-yellow-900 text-yellow-400'
                                 : order.status === 'Ready'
@@ -379,6 +397,18 @@ const OrdersManagement = () => {
                             hour12: true,
                           })}
                         </p>
+                        {order.status === 'Preparing' && order.preparingAt && (
+                          <p className="text-sm text-gray-400 mb-2">
+                            <span className="font-semibold">Preparing:</span>{' '}
+                            {new Date(order.preparingAt).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true,
+                            })} ({formatTimeDifference(order.createdAt, order.preparingAt)})
+                          </p>
+                        )}
                         {order.status === 'Ready' && order.readyAt && (
                           <p className="text-sm text-gray-400 mb-2">
                             <span className="font-semibold">Ready:</span>{' '}
@@ -462,7 +492,6 @@ const OrdersManagement = () => {
                   ))}
                 </AnimatePresence>
               </div>
-              {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex justify-center mt-6 space-x-2">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (

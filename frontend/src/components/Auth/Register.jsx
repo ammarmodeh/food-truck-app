@@ -8,6 +8,9 @@ import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 import { auth } from '../../config/firebaseConfig';
 
 const Register = () => {
+  const isDevMode = import.meta.env.VITE_NODE_ENV === 'development';
+  const [countryCode, setCountryCode] = useState('+1');
+  const [phoneInput, setPhoneInput] = useState('');
   const [formData, setFormData] = useState({ name: '', password: '', phone: '' });
   const [otp, setOtp] = useState('');
   const [showOtpField, setShowOtpField] = useState(false);
@@ -18,9 +21,21 @@ const Register = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
 
-  // console.log('Auth object:', auth);
+  const onPhoneChange = (e) => {
+    const value = e.target.value.replace(/[^\d]/g, ''); // Allow only digits
+    setPhoneInput(value);
+    setFormData({ ...formData, phone: value ? countryCode + value : '' });
+  };
 
-  const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const onCountryCodeChange = (e) => {
+    const newCode = e.target.value;
+    setCountryCode(newCode);
+    setFormData({ ...formData, phone: phoneInput ? newCode + phoneInput : '' });
+  };
+
+  const onInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const setupRecaptcha = () => {
     if (!auth) {
@@ -35,18 +50,16 @@ const Register = () => {
       return null;
     }
     try {
-      // console.log('Initializing RecaptchaVerifier with size: normal');
       const verifier = new RecaptchaVerifier(
         auth,
         'recaptcha-container',
         {
           size: 'normal',
           callback: (response) => {
-            // console.log('reCAPTCHA verified:', response);
+            if (isDevMode) console.log({ response });
             setRecaptchaError(null);
           },
           'expired-callback': () => {
-            // console.log('reCAPTCHA expired');
             window.recaptchaVerifier = null;
             setRecaptchaError('reCAPTCHA expired. Please try again.');
             setTimeout(() => {
@@ -55,7 +68,6 @@ const Register = () => {
           },
         }
       );
-      // console.log('RecaptchaVerifier initialized:', verifier);
       return verifier;
     } catch (err) {
       console.error('Error initializing RecaptchaVerifier:', err.code, err.message);
@@ -76,9 +88,7 @@ const Register = () => {
       const verifier = setupRecaptcha();
       if (verifier) {
         window.recaptchaVerifier = verifier;
-        // Pre-render reCAPTCHA as per documentation
         verifier.render().then((widgetId) => {
-          // console.log('reCAPTCHA rendered, widget ID:', widgetId);
           window.recaptchaWidgetId = widgetId;
         }).catch((err) => {
           console.error('Error rendering reCAPTCHA:', err.code, err.message);
@@ -115,22 +125,22 @@ const Register = () => {
         dispatch({ type: 'REGISTER_FAIL', payload: 'reCAPTCHA not initialized' });
         return;
       }
-      const phoneRegex = /^\+\d{10,15}$/;
-      const phoneNumber = `${formData.phone}`;
+      const phoneRegex = countryCode === '+1' ? /^\+1\d{10}$/ : /^\+962\d{9}$/;
+      const phoneNumber = formData.phone;
       if (!phoneRegex.test(phoneNumber)) {
-        dispatch({ type: 'REGISTER_FAIL', payload: 'Invalid phone number format. Use + followed by country code and number.' });
+        dispatch({
+          type: 'REGISTER_FAIL',
+          payload: `Invalid phone number format. Use ${countryCode} followed by ${countryCode === '+1' ? '10-digit' : '9-digit'} number (e.g., ${countryCode === '+1' ? '+12345678901' : '+962123456789'}).`,
+        });
         return;
       }
-      // console.log('Sending OTP to:', phoneNumber);
       const result = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
-      // console.log('signInWithPhoneNumber result:', result);
       setConfirmationResult(result);
       setShowOtpField(true);
       setRecaptchaError(null);
     } catch (err) {
       console.error('Error in requestOtp:', err.code, err.message);
       dispatch({ type: 'REGISTER_FAIL', payload: `Failed to send OTP: ${err.message}` });
-      // Reset reCAPTCHA on error, as per documentation
       if (window.recaptchaWidgetId) {
         window.grecaptcha.reset(window.recaptchaWidgetId);
       } else if (window.recaptchaVerifier) {
@@ -224,7 +234,7 @@ const Register = () => {
               type="text"
               name="name"
               value={formData.name}
-              onChange={onChange}
+              onChange={onInputChange}
               placeholder="Enter your full name"
               className="w-full p-4 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
               required
@@ -239,7 +249,7 @@ const Register = () => {
               type={showPassword ? 'text' : 'password'}
               name="password"
               value={formData.password}
-              onChange={onChange}
+              onChange={onInputChange}
               placeholder="Create a password"
               className="w-full p-4 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 pr-12"
               required
@@ -257,15 +267,27 @@ const Register = () => {
             <label className="block text-gray-300 font-medium mb-2">
               Phone Number
             </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={onChange}
-              placeholder="e.g., +16505554567"
-              className="w-full p-4 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
-              required
-            />
+            <div className="flex">
+              {isDevMode && (
+                <select
+                  value={countryCode}
+                  onChange={onCountryCodeChange}
+                  className="p-4 rounded-l-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                >
+                  <option value="+1">+1 (USA)</option>
+                  <option value="+962">+962 (Jordan)</option>
+                </select>
+              )}
+              <input
+                type="tel"
+                name="phone"
+                value={phoneInput}
+                onChange={onPhoneChange}
+                placeholder={countryCode === '+1' ? '2345678901' : '123456789'}
+                className={`w-full p-4 ${isDevMode ? 'rounded-r-xl' : 'rounded-xl'} bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300`}
+                required
+              />
+            </div>
           </motion.div>
 
           {showOtpField && (

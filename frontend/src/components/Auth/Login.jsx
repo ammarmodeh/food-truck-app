@@ -6,22 +6,41 @@ import { motion } from 'framer-motion';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const Login = () => {
+  const isDevMode = import.meta.env.VITE_NODE_ENV === 'development';
+  const [countryCode, setCountryCode] = useState('+1');
+  const [phoneInput, setPhoneInput] = useState('');
   const [formData, setFormData] = useState({ phone: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
 
-  const onChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const onPhoneChange = (e) => {
+    const value = e.target.value.replace(/[^\d]/g, ''); // Allow only digits
+    setPhoneInput(value);
+    setFormData({ ...formData, phone: countryCode + value });
+    if (error) dispatch(clearErrors());
+  };
+
+  const onCountryCodeChange = (e) => {
+    const newCode = e.target.value;
+    setCountryCode(newCode);
+    setFormData({ ...formData, phone: phoneInput ? newCode + phoneInput : '' });
+  };
+
+  const onPasswordChange = (e) => {
+    setFormData({ ...formData, password: e.target.value });
     if (error) dispatch(clearErrors());
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
-    const phoneRegex = /^\+\d{10,15}$/;
-    if (!phoneRegex.test(`${formData.phone}`)) {
-      dispatch({ type: 'AUTH_ERROR', payload: 'Invalid phone number format. Use + followed by country code and number.' });
+    const phoneRegex = countryCode === '+1' ? /^\+1\d{10}$/ : /^\+962\d{9}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      dispatch({
+        type: 'AUTH_ERROR',
+        payload: `Invalid phone number format. Use ${countryCode} followed by ${countryCode === '+1' ? '10-digit' : '9-digit'} number (e.g., ${countryCode === '+1' ? '+12345678901' : '+962123456789'}).`,
+      });
       return;
     }
     dispatch(login(formData));
@@ -92,15 +111,27 @@ const Login = () => {
             <label className="block text-gray-300 font-medium mb-2">
               Phone Number
             </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={onChange}
-              placeholder="e.g., +1234567890"
-              className="w-full p-4 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
-              required
-            />
+            <div className="flex">
+              {isDevMode && (
+                <select
+                  value={countryCode}
+                  onChange={onCountryCodeChange}
+                  className="p-4 rounded-l-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                >
+                  <option value="+1">+1 (USA)</option>
+                  <option value="+962">+962 (Jordan)</option>
+                </select>
+              )}
+              <input
+                type="tel"
+                name="phone"
+                value={phoneInput}
+                onChange={onPhoneChange}
+                placeholder={countryCode === '+1' ? '2345678901' : '123456789'}
+                className={`w-full p-4 ${isDevMode ? 'rounded-r-xl' : 'rounded-xl'} bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300`}
+                required
+              />
+            </div>
           </motion.div>
 
           <motion.div variants={itemVariants} className="relative">
@@ -111,7 +142,7 @@ const Login = () => {
               type={showPassword ? 'text' : 'password'}
               name="password"
               value={formData.password}
-              onChange={onChange}
+              onChange={onPasswordChange}
               placeholder="Enter your password"
               className="w-full p-4 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 pr-12"
               required
