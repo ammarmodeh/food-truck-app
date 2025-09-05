@@ -201,21 +201,21 @@ const Profile = () => {
   if (!user) {
     return (
       <motion.div
-        className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 font-poppins"
+        className="min-h-screen "
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <div className="container mx-auto px-6 py-12">
+        <div className="section-container">
           <motion.div
-            className="text-center py-12 bg-white/90 dark:bg-gray-800/90 rounded-3xl shadow-xl backdrop-blur-md"
+            className="text-center py-12 card-gradient-bg/90 rounded-3xl shadow-xl backdrop-blur-md"
             variants={itemVariants}
           >
             <div className="text-6xl mb-4">🔐</div>
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Please log in</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">You need to be logged in to view your profile.</p>
+            <h3 className="text-2xl font-bold text-white mb-2">Please log in</h3>
+            <p className="text-gray-400 mb-6">You need to be logged in to view your profile.</p>
             <motion.button
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold text-lg"
+              className="bg-button-bg-primary text-white px-8 py-3 rounded-full font-semibold text-lg"
               whileHover={{ scale: 1.05, boxShadow: '0 10px 20px rgba(251, 146, 60, 0.3)' }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/login')}
@@ -230,14 +230,14 @@ const Profile = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 font-poppins"
+      className="min-h-screen"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="container mx-auto px-6 py-12">
+      <div className="section-container">
         <motion.h2
-          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          className="section-heading"
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -247,16 +247,16 @@ const Profile = () => {
 
 
         <motion.div
-          className="bg-white/90 dark:bg-gray-800/90 p-8 rounded-3xl shadow-2xl backdrop-blur-md max-w-2xl mx-auto border border-gray-100 dark:border-gray-700"
+          className="card-gradient-bg/90 p-8 rounded-3xl shadow-2xl backdrop-blur-md max-w-2xl mx-auto border border-gray-700"
           variants={itemVariants}
         >
           <div className="flex items-center justify-center space-x-3 mb-8">
-            <UserIcon className="h-10 w-10 text-orange-600 dark:text-orange-400" />
-            <h3 className="text-3xl font-bold text-gray-800 dark:text-white tracking-tight">
+            <UserIcon className="h-10 w-10 text-orange-400" />
+            <h3 className="text-3xl font-bold text-white tracking-tight">
               {user.isAdmin ? 'Admin Profile' : 'Your Profile'}
             </h3>
             {user.isAdmin && (
-              <span className="flex items-center space-x-1 bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400 px-3 py-1 rounded-full font-medium text-sm">
+              <span className="flex items-center space-x-1  bg-blue-900/50 text-blue-400 px-3 py-1 rounded-full font-medium text-sm">
                 <ShieldCheckIcon className="h-5 w-5" />
                 <span>Admin</span>
               </span>
@@ -275,25 +275,25 @@ const Profile = () => {
                 className="space-y-6"
               >
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 font-medium text-sm mb-2">Name</label>
+                  <label className="block text-gray-300 font-medium text-sm mb-2">Name</label>
                   <input
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 text-base"
+                    className="w-full p-4 rounded-xl bg-gray-700/50 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 text-base"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 font-medium text-sm mb-2">
+                  <label className="block text-gray-300 font-medium text-sm mb-2">
                     Phone Number {formData.phone !== user.phone && '(New number requires verification)'}
                   </label>
                   <input
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 text-base"
+                    className="w-full p-4 rounded-xl bg-gray-700/50 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 text-base"
                     required
                   />
 
@@ -301,7 +301,7 @@ const Profile = () => {
                     <motion.button
                       type="button"
                       onClick={sendOtp}
-                      className="mt-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-xl font-semibold text-sm"
+                      className="mt-2 bg-button-bg-primary text-white px-4 py-2 rounded-xl font-semibold text-sm"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       disabled={loading}
@@ -316,10 +316,10 @@ const Profile = () => {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="space-y-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl"
+                    className="space-y-4 p-4 bg-orange-900/20 rounded-xl"
                   >
-                    <h4 className="font-semibold text-orange-800 dark:text-orange-300">Verify Phone Number</h4>
-                    <p className="text-sm text-orange-700 dark:text-orange-300">
+                    <h4 className="font-semibold text-orange-300">Verify Phone Number</h4>
+                    <p className="text-sm text-orange-300">
                       Enter the OTP sent to {formData.phone}
                     </p>
 
@@ -328,7 +328,7 @@ const Profile = () => {
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
                       placeholder="Enter OTP"
-                      className="w-full p-3 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-orange-300 dark:border-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full p-3 rounded-xl bg-gray-700 text-white border border-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
                       required
                     />
 
@@ -360,7 +360,7 @@ const Profile = () => {
                 <div id="recaptcha-container-profile"></div>
 
                 {recaptchaError && (
-                  <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-xl text-sm">
+                  <div className="p-3 bg-yellow-900/30 text-yellow-300 rounded-xl text-sm">
                     {recaptchaError}
                   </div>
                 )}
@@ -368,7 +368,7 @@ const Profile = () => {
                 <div className="flex justify-end space-x-4">
                   <motion.button
                     type="submit"
-                    className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-xl font-semibold text-lg"
+                    className="bg-button-bg-primary text-white px-8 py-3 rounded-xl font-semibold text-lg"
                     whileHover={{ scale: 1.05, boxShadow: '0 10px 20px rgba(251, 146, 60, 0.3)' }}
                     whileTap={{ scale: 0.95 }}
                     disabled={loading || (formData.phone !== user.phone && !verifyMode)}
@@ -379,7 +379,7 @@ const Profile = () => {
                   <motion.button
                     type="button"
                     onClick={cancelEdit}
-                    className="bg-gray-500 dark:bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold text-lg"
+                    className="bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold text-lg"
                     whileHover={{ scale: 1.05, boxShadow: '0 10px 20px rgba(107, 114, 128, 0.3)' }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -396,18 +396,18 @@ const Profile = () => {
                 transition={{ duration: 0.3 }}
                 className="space-y-4"
               >
-                <p className="text-lg text-gray-600 dark:text-gray-300">
-                  <span className="font-semibold text-gray-800 dark:text-gray-200">Name:</span> {user.name || 'N/A'}
+                <p className="text-lg text-gray-300">
+                  <span className="font-semibold text-gray-200">Name:</span> {user.name || 'N/A'}
                 </p>
-                <p className="text-lg text-gray-600 dark:text-gray-300">
-                  <span className="font-semibold text-gray-800 dark:text-gray-200">Phone:</span> {user.phone || 'N/A'}
+                <p className="text-lg text-gray-300">
+                  <span className="font-semibold text-gray-200">Phone:</span> {user.phone || 'N/A'}
                 </p>
-                <p className="text-lg text-gray-600 dark:text-gray-300">
-                  <span className="font-semibold text-gray-800 dark:text-gray-200">Phone Verified:</span>
+                <p className="text-lg text-gray-300">
+                  <span className="font-semibold text-gray-200">Phone Verified:</span>
                   {user.phoneVerified ? (
-                    <span className="text-green-600 dark:text-green-400 ml-2">✓ Verified</span>
+                    <span className="text-green-400 ml-2">✓ Verified</span>
                   ) : (
-                    <span className="text-red-600 dark:text-red-400 ml-2">Not Verified</span>
+                    <span className="text-red-400 ml-2">Not Verified</span>
                   )}
                 </p>
 
@@ -437,7 +437,7 @@ const Profile = () => {
 
                 <motion.button
                   onClick={() => setEditMode(true)}
-                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-xl font-semibold text-lg mt-6"
+                  className="w-full bg-button-bg-primary text-white py-3 rounded-xl font-semibold text-lg mt-6"
                   whileHover={{ scale: 1.02, boxShadow: '0 10px 20px rgba(251, 146, 60, 0.3)' }}
                   whileTap={{ scale: 0.98 }}
                 >

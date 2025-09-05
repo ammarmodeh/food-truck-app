@@ -38,7 +38,7 @@ const Cart = () => {
   // Handle image loading errors
   const handleImageError = (e) => {
     e.target.onerror = null;
-    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23FFEDD5'/%3E%3Cpath d='M200,150 L250,100 L300,150 L250,200 Z' fill='%23FDBA74'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23FB923C'/%3E%3C/svg%3E";
+    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%234B5563'/%3E%3Cpath d='M200,150 L250,100 L300,150 L250,200 Z' fill='%23F59E0B'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23D97706'/%3E%3C/svg%3E";
   };
 
   // Handle quantity changes (local state)
@@ -102,14 +102,14 @@ const Cart = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+      className="min-h-screen"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="container mx-auto px-6 py-12">
+      <div className="section-container">
         <motion.h2
-          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          className="section-heading"
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -117,18 +117,16 @@ const Cart = () => {
           Your Shopping Cart
         </motion.h2>
 
-
-
         {cartItems.length === 0 ? (
           <motion.div
-            className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+            className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
             variants={itemVariants}
           >
             <div className="text-6xl mb-4">🛒</div>
-            <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Your cart is empty</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">Start adding delicious items from our menu!</p>
+            <h3 className="text-2xl font-bold text-gray-300 mb-2">Your cart is empty</h3>
+            <p className="text-gray-400 mb-6">Start adding delicious items from our menu!</p>
             <motion.button
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold"
+              className="bg-button-bg-primary text-white px-8 py-3 rounded-full font-semibold"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/menu')}
@@ -144,7 +142,7 @@ const Cart = () => {
                 {cartItems.map((item) => (
                   <motion.div
                     key={item._id}
-                    className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500"
+                    className="relative card-gradient-bg rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border border-gray-700"
                     variants={itemVariants}
                     initial="hidden"
                     animate="visible"
@@ -153,7 +151,7 @@ const Cart = () => {
                   >
                     <div className="relative overflow-hidden">
                       <img
-                        src={item.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23FFEDD5'/%3E%3Cpath d='M200,150 L250,100 L300,150 L250,200 Z' fill='%23FDBA74'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23FB923C'/%3E%3C/svg%3E"}
+                        src={item.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%234B5563'/%3E%3Cpath d='M200,150 L250,100 L300,150 L250,200 Z' fill='%23F59E0B'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23D97706'/%3E%3C/svg%3E"}
                         alt={item.name}
                         className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                         onError={handleImageError}
@@ -162,12 +160,12 @@ const Cart = () => {
                     </div>
                     <div className="p-6">
                       <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-2xl font-bold text-gray-800 dark:text-white group-hover:text-orange-600 transition-colors">
+                        <h3 className="text-2xl font-bold text-white group-hover:text-orange-600 transition-colors">
                           {item.name}
                         </h3>
                         <motion.button
                           onClick={() => handleRemoveFromCart(item._id)}
-                          className="text-red-500 hover:text-red-600 p-2 rounded-full hover:bg-red-100/50 dark:hover:bg-red-900/50 transition-colors duration-300"
+                          className="text-red-500 hover:text-red-600 p-2 rounded-full hover:bg-red-900/50 transition-colors duration-300"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                         >
@@ -175,28 +173,28 @@ const Cart = () => {
                         </motion.button>
                       </div>
                       {item.description && (
-                        <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 mb-3">{item.description}</p>
+                        <p className="text-gray-300 text-sm line-clamp-2 mb-3">{item.description}</p>
                       )}
-                      <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-4">
+                      <p className="text-2xl font-bold text-orange-400 mb-4">
                         ${(item.price * item.qty).toFixed(2)}
                       </p>
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <motion.button
                             onClick={() => handleQuantityChange(item._id, -1)}
-                            className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-900 dark:text-white disabled:opacity-50"
+                            className="p-2 bg-gray-700 rounded-full text-white disabled:opacity-50"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             disabled={quantities[item._id] <= 0}
                           >
                             <MinusIcon className="h-5 w-5" />
                           </motion.button>
-                          <span className="text-lg font-semibold text-gray-800 dark:text-white w-10 text-center">
+                          <span className="text-lg font-semibold text-white w-10 text-center">
                             {quantities[item._id] || 0}
                           </span>
                           <motion.button
                             onClick={() => handleQuantityChange(item._id, 1)}
-                            className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-900 dark:text-white"
+                            className="p-2 bg-gray-700 rounded-full text-white"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -205,7 +203,7 @@ const Cart = () => {
                         </div>
                         <motion.button
                           onClick={() => handleUpdateQuantity(item._id)}
-                          className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                          className="bg-button-bg-primary text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           disabled={quantities[item._id] === item.qty || quantities[item._id] <= 0}
@@ -221,12 +219,12 @@ const Cart = () => {
 
             {/* Order Summary */}
             <motion.div
-              className="bg-white/80 dark:bg-gray-800/80 p-6 rounded-3xl shadow-lg backdrop-blur-sm"
+              className="card-gradient-bg p-6 rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
               variants={itemVariants}
             >
-              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Order Summary</h3>
+              <h3 className="text-2xl font-bold text-white mb-6">Order Summary</h3>
               <div className="space-y-4">
-                <div className="text-gray-700 dark:text-gray-300">
+                <div className="text-gray-300">
                   <h4 className="text-lg font-semibold mb-2">Items:</h4>
                   <ul className="space-y-2">
                     {cartItems.map((item) => (
@@ -237,14 +235,14 @@ const Cart = () => {
                     ))}
                   </ul>
                 </div>
-                <div className="flex justify-between text-2xl font-bold text-gray-800 dark:text-white pt-4">
+                <div className="flex justify-between text-2xl font-bold text-white pt-4">
                   <span>Total:</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
                 <motion.button
                   onClick={handlePlaceOrder}
                   disabled={isLoading}
-                  className={`w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full bg-button-bg-primary text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   whileHover={{ scale: isLoading ? 1 : 1.02 }}
                   whileTap={{ scale: isLoading ? 1 : 0.98 }}
                 >

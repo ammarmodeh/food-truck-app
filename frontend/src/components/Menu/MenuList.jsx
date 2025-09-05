@@ -18,9 +18,8 @@ const MenuList = () => {
   const [quantities, setQuantities] = useState({});
   const dispatch = useDispatch();
   const { cartItems } = useSelector((state) => state.cart);
-  const { user } = useSelector((state) => state.auth); // Access auth state to check if user is logged in
+  const { user } = useSelector((state) => state.auth);
 
-  // Fetch menu data (run only once on mount)
   useEffect(() => {
     const fetchMenu = async () => {
       try {
@@ -41,7 +40,6 @@ const MenuList = () => {
     fetchMenu();
   }, []);
 
-  // Initialize quantities based on cartItems and menu
   useEffect(() => {
     if (menu.length > 0) {
       const initialQuantities = menu.reduce((acc, item) => {
@@ -52,7 +50,6 @@ const MenuList = () => {
     }
   }, [menu, cartItems]);
 
-  // Filter and sort menu (memoized to prevent unnecessary recalculations)
   useMemo(() => {
     let filtered = menu.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
     if (category !== 'all') filtered = filtered.filter(item => item.category === category);
@@ -64,19 +61,16 @@ const MenuList = () => {
     setFilteredMenu(filtered);
   }, [search, category, sort, menu]);
 
-  // Handle image loading errors
   const handleImageError = (e) => {
     e.target.onerror = null;
-    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23FFEDD5'/%3E%3Cpath d='M200,150 L250,100 L300,150 L250,200 Z' fill='%23FDBA74'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23FB923C'/%3E%3C/svg%3E";
+    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%234B5563'/%3E%3Cpath d='M200,150 L250,100 L300,150 L250,200 Z' fill='%23F59E0B'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23D97706'/%3E%3C/svg%3E";
   };
 
-  // Get the quantity for a menu item from the cart
   const getItemQuantity = (itemId) => {
     const cartItem = cartItems.find(item => item._id === itemId);
     return cartItem ? cartItem.qty : 0;
   };
 
-  // Handle quantity changes (update local counter state)
   const handleQuantityChange = (itemId, delta) => {
     setQuantities(prev => ({
       ...prev,
@@ -84,7 +78,6 @@ const MenuList = () => {
     }));
   };
 
-  // Handle adding/updating item in cart based on local counter value
   const handleAddToCart = (item) => {
     const qty = quantities[item._id] || 0;
     if (qty > 0) {
@@ -98,7 +91,6 @@ const MenuList = () => {
     }
   };
 
-  // Handle removing item from cart
   const handleRemoveFromCart = (itemId) => {
     dispatch(removeFromCart(itemId));
     setQuantities(prev => ({
@@ -128,14 +120,14 @@ const MenuList = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+      className="min-h-screen"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="container mx-auto px-6 py-12">
+      <div className="section-container">
         <motion.h2
-          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          className="section-heading"
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -143,32 +135,28 @@ const MenuList = () => {
           Our Gourmet Menu
         </motion.h2>
 
-
         {/* Search and Filters */}
         <motion.div
-          className="flex flex-col gap-4 mb-12 bg-white/80 dark:bg-gray-800/80 p-6 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
+          className="flex flex-col gap-4 mb-12 card-gradient-bg p-6 rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
           variants={itemVariants}
         >
-          {/* Search Input - Full width on all screens */}
           <div className="relative w-full">
             <input
               type="text"
               placeholder="Search dishes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full p-4 pr-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+              className="w-full p-4 pr-10 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
             />
             <MagnifyingGlassIcon className="h-5 w-5 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
           </div>
 
-          {/* Filter and Sort Options - Stack vertically on mobile, row on larger screens */}
           <div className="flex flex-col sm:flex-row gap-4 w-full">
-            {/* Category Filter */}
             <div className="relative w-full sm:w-auto sm:flex-1">
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full p-4 pr-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 appearance-none"
+                className="w-full p-4 pr-8 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 appearance-none"
               >
                 {categories.map(cat => (
                   <option key={cat} value={cat}>
@@ -179,12 +167,11 @@ const MenuList = () => {
               <FunnelIcon className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-orange-500 pointer-events-none" />
             </div>
 
-            {/* Sort Option */}
             <div className="relative w-full sm:w-auto sm:flex-1">
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="w-full p-4 pr-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 appearance-none"
+                className="w-full p-4 pr-8 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 appearance-none"
               >
                 <option value="name">Sort by Name</option>
                 <option value="price_asc">Price: Low to High</option>
@@ -201,14 +188,14 @@ const MenuList = () => {
             {[1, 2, 3, 4, 5, 6].map((_, index) => (
               <motion.div
                 key={index}
-                className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg animate-pulse border-1 border-gray-700"
+                className="card-gradient-bg p-6 rounded-3xl shadow-lg animate-pulse border border-gray-700"
                 variants={itemVariants}
               >
-                <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4"></div>
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
-                <div className="h-10 bg-orange-200 dark:bg-orange-700 rounded-lg"></div>
+                <div className="w-full h-48 bg-gray-700 rounded-lg mb-4"></div>
+                <div className="h-6 bg-gray-700 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-700 rounded w-1/2 mb-4"></div>
+                <div className="h-10 bg-orange-700 rounded-lg"></div>
               </motion.div>
             ))}
           </div>
@@ -218,10 +205,10 @@ const MenuList = () => {
             variants={itemVariants}
           >
             <div className="text-6xl mb-4">🍽️</div>
-            <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Unable to load menu</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
+            <h3 className="text-2xl font-bold text-gray-300 mb-2">Unable to load menu</h3>
+            <p className="text-gray-400 mb-6">{error}</p>
             <motion.button
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold"
+              className="bg-button-bg-primary text-white px-8 py-3 rounded-full font-semibold"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => window.location.reload()}
@@ -235,8 +222,8 @@ const MenuList = () => {
             variants={itemVariants}
           >
             <div className="text-6xl mb-4">🍽️</div>
-            <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">No items found</h3>
-            <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filters.</p>
+            <h3 className="text-2xl font-bold text-gray-300 mb-2">No items found</h3>
+            <p className="text-gray-400">Try adjusting your search or filters.</p>
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -246,13 +233,13 @@ const MenuList = () => {
               return (
                 <motion.div
                   key={item._id}
-                  className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
+                  className="relative card-gradient-bg rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border border-gray-700"
                   variants={itemVariants}
                   whileHover={{ scale: 1.03, boxShadow: '0 25px 50px rgba(251, 146, 60, 0.2)' }}
                 >
                   <div className="relative overflow-hidden">
                     <img
-                      src={item.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23FFEDD5'/%3E%3Cpath d='M200,150 L250,100 L300,150 L250,200 Z' fill='%23FDBA74'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23FB923C'/%3E%3C/svg%3E"}
+                      src={item.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%234B5563'/%3E%3Cpath d='M200,150 L250,100 L300,150 L250,200 Z' fill='%23F59E0B'/%3E%3Ccircle cx='200' cy='150' r='30' fill='%23D97706'/%3E%3C/svg%3E"}
                       alt={item.name}
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={handleImageError}
@@ -261,13 +248,13 @@ const MenuList = () => {
                   </div>
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-2xl font-bold text-gray-800 dark:text-white group-hover:text-orange-600 transition-colors">
+                      <h3 className="text-2xl font-bold text-white group-hover:text-orange-600 transition-colors">
                         {item.name}
                       </h3>
                       <AnimatePresence>
                         {cartQty > 0 && user && (
                           <motion.span
-                            className="bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-800 text-orange-600 dark:text-orange-300 text-xs font-semibold px-2 py-1 rounded-full"
+                            className="bg-gradient-to-r from-orange-900 to-orange-800 text-orange-300 text-xs font-semibold px-2 py-1 rounded-full"
                             variants={badgeVariants}
                             initial="hidden"
                             animate="visible"
@@ -279,12 +266,12 @@ const MenuList = () => {
                       </AnimatePresence>
                     </div>
                     {item.description && (
-                      <p className="text-gray-600 dark:text-gray-300 mb-3 text-sm line-clamp-2">{item.description}</p>
+                      <p className="text-gray-300 mb-3 text-sm line-clamp-2">{item.description}</p>
                     )}
-                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mb-4">
+                    <p className="text-2xl font-bold text-orange-400 mb-4">
                       ${typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price || 0).toFixed(2)}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    <p className="text-sm text-gray-400 mb-4">
                       Prep Time: {item.prepTime} min | Category: {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
                     </p>
                     {user ? (
@@ -292,19 +279,19 @@ const MenuList = () => {
                         <div className="flex items-center gap-2">
                           <motion.button
                             onClick={() => handleQuantityChange(item._id, -1)}
-                            className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-900 dark:text-white disabled:opacity-50"
+                            className="p-2 bg-gray-700 rounded-full text-white disabled:opacity-50"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             disabled={localQty <= 0}
                           >
                             <MinusIcon className="h-5 w-5" />
                           </motion.button>
-                          <span className="text-lg font-semibold text-gray-800 dark:text-white w-10 text-center">
+                          <span className="text-lg font-semibold text-white w-10 text-center">
                             {localQty}
                           </span>
                           <motion.button
                             onClick={() => handleQuantityChange(item._id, 1)}
-                            className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full text-gray-900 dark:text-white"
+                            className="p-2 bg-gray-700 rounded-full text-white"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
@@ -314,7 +301,7 @@ const MenuList = () => {
                         <div className="flex items-center gap-2">
                           <motion.button
                             onClick={() => handleAddToCart(item)}
-                            className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+                            className="bg-button-bg-primary text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 disabled:opacity-50"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             disabled={localQty <= 0}
@@ -325,7 +312,7 @@ const MenuList = () => {
                             {cartQty > 0 && (
                               <motion.button
                                 onClick={() => handleRemoveFromCart(item._id)}
-                                className="bg-gradient-to-r from-red-500 to-red-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 border-1 border-gray-700"
+                                className="bg-gradient-to-r from-red-500 to-red-600 text-white py-2 px-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 border border-gray-700"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                               >
@@ -336,7 +323,7 @@ const MenuList = () => {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                      <p className="text-sm text-gray-400 italic">
                         Please <a href="/login" className='font-semibold underline hover:text-orange-600 text-orange-500'>login</a> to add items to your cart.
                       </p>
                     )}

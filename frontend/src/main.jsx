@@ -7,10 +7,6 @@ import { SocketProvider } from './context/SocketContext';
 import { NotificationProvider } from './context/NotificationContext';
 import './tailwind.css';
 
-// Initialize dark mode from localStorage
-const theme = localStorage.getItem('theme') || 'light';
-document.documentElement.classList.toggle('dark', theme === 'dark');
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <Provider store={store}>
     <SocketProvider>

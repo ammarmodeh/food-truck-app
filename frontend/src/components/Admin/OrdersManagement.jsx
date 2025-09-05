@@ -147,21 +147,21 @@ const OrdersManagement = () => {
   if (!user || !user.isAdmin) {
     return (
       <motion.div
-        className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+        className="min-h-screen"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <div className="container mx-auto px-6 py-12">
+        <div className="section-container">
           <motion.div
-            className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+            className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm"
             variants={itemVariants}
           >
             <div className="text-6xl mb-4">🔐</div>
-            <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Access Denied</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">This page is for admins only.</p>
+            <h3 className="text-2xl font-bold text-gray-300 mb-2">Access Denied</h3>
+            <p className="text-gray-400 mb-6">This page is for admins only.</p>
             <motion.button
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold"
+              className="bg-button-bg-primary text-white px-8 py-3 rounded-full font-semibold"
               whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(251, 146, 60, 0.4)' }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/login')}
@@ -176,14 +176,14 @@ const OrdersManagement = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+      className="min-h-screen"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="container mx-auto px-6 py-12">
+      <div className="section-container">
         <motion.h2
-          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          className="section-heading"
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -195,22 +195,22 @@ const OrdersManagement = () => {
         {/* Queue Status */}
         <motion.section className="mb-12" variants={itemVariants}>
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <ClockIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Queue Status</h3>
+            <ClockIcon className="h-8 w-8 text-orange-400" />
+            <h3 className="text-2xl font-bold text-white">Queue Status</h3>
           </div>
           {loading ? (
-            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm max-w-2xl mx-auto">
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-6 animate-pulse"></div>
-              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-4 animate-pulse"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-full animate-pulse"></div>
+            <div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm max-w-2xl mx-auto">
+              <div className="h-8 bg-gray-700 rounded w-1/2 mx-auto mb-6 animate-pulse"></div>
+              <div className="h-6 bg-gray-700 rounded w-3/4 mx-auto mb-4 animate-pulse"></div>
+              <div className="h-4 bg-gray-700 rounded-full w-full animate-pulse"></div>
             </div>
           ) : error ? (
-            <div className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm max-w-2xl mx-auto border-1 border-gray-700">
+            <div className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm max-w-2xl mx-auto border-1 border-gray-700">
               <div className="text-6xl mb-4">⏰</div>
-              <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Unable to load queue</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
+              <h3 className="text-2xl font-bold text-gray-300 mb-2">Unable to load queue</h3>
+              <p className="text-gray-400 mb-6">{error}</p>
               <motion.button
-                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold"
+                className="bg-button-bg-primary text-white px-8 py-3 rounded-full font-semibold"
                 whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(251, 146, 60, 0.4)' }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => window.location.reload()}
@@ -220,17 +220,17 @@ const OrdersManagement = () => {
             </div>
           ) : (
             <motion.div
-              className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm max-w-2xl mx-auto text-center border-1 border-gray-700"
+              className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm max-w-2xl mx-auto text-center border-1 border-gray-700"
               key={queue.length}
               variants={itemVariants}
               initial="hidden"
               animate="visible"
               exit={{ opacity: 0, y: 20 }}
             >
-              <p className="text-3xl font-semibold text-orange-600 dark:text-orange-400">{queue.length} Orders</p>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-6 mt-4 overflow-hidden">
+              <p className="text-3xl font-semibold text-orange-400">{queue.length} Orders</p>
+              <div className="w-full bg-gray-700 rounded-full h-6 mt-4 overflow-hidden">
                 <motion.div
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 h-6 rounded-full"
+                  className="bg-button-bg-primary h-6 rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min((queue.estimatedWait / 60) * 100, 100)}%` }}
                   transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -243,7 +243,7 @@ const OrdersManagement = () => {
         {/* Search and Tabs */}
         <motion.section className="mb-12" variants={itemVariants}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Manage Orders</h3>
+            <h3 className="text-2xl font-bold text-white">Manage Orders</h3>
             <input
               type="text"
               placeholder="Search by Order ID, Customer Name, or Phone"
@@ -252,7 +252,7 @@ const OrdersManagement = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1); // Reset to first page on search
               }}
-              className="w-full max-w-md p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+              className="w-full max-w-md p-3 rounded-xl bg-gray-700/50 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
             />
           </div>
           <div className="flex space-x-2 mb-6 overflow-x-auto">
@@ -264,8 +264,8 @@ const OrdersManagement = () => {
                   setCurrentPage(1);
                 }}
                 className={`px-4 py-2 rounded-full font-semibold transition duration-300 ${activeTab === status
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-orange-900/50'
+                  ? 'bg-button-bg-primary text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-orange-900/50'
                   }`}
               >
                 {status}
@@ -281,26 +281,26 @@ const OrdersManagement = () => {
               {[1, 2, 3].map((_, index) => (
                 <motion.div
                   key={index}
-                  className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg animate-pulse"
+                  className="card-gradient-bg p-6 rounded-3xl shadow-lg animate-pulse"
                   variants={itemVariants}
                 >
-                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-3"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="h-6 bg-gray-700 rounded w-1/2 mb-4"></div>
+                  <div className="h-4 bg-gray-700 rounded w-3/4 mb-3"></div>
+                  <div className="h-4 bg-gray-700 rounded w-full mb-3"></div>
+                  <div className="h-4 bg-gray-700 rounded w-1/2"></div>
                 </motion.div>
               ))}
             </div>
           ) : error ? (
             <motion.div
-              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
+              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
               variants={itemVariants}
             >
               <div className="text-6xl mb-4">📋</div>
-              <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Unable to load orders</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
+              <h3 className="text-2xl font-bold text-gray-300 mb-2">Unable to load orders</h3>
+              <p className="text-gray-400 mb-6">{error}</p>
               <motion.button
-                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold"
+                className="bg-button-bg-primary text-white px-8 py-3 rounded-full font-semibold"
                 whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(251, 146, 60, 0.4)' }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => window.location.reload()}
@@ -310,12 +310,12 @@ const OrdersManagement = () => {
             </motion.div>
           ) : filteredOrders.length === 0 ? (
             <motion.div
-              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
+              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
               variants={itemVariants}
             >
               <div className="text-6xl mb-4">🎉</div>
-              <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">No orders found</h3>
-              <p className="text-gray-500 dark:text-gray-400">
+              <h3 className="text-2xl font-bold text-gray-300 mb-2">No orders found</h3>
+              <p className="text-gray-400">
                 {searchQuery ? 'No orders match your search criteria.' : 'No orders in this category.'}
               </p>
             </motion.div>
@@ -326,7 +326,7 @@ const OrdersManagement = () => {
                   {paginatedOrders.map((order) => (
                     <motion.div
                       key={order._id}
-                      className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
+                      className="relative card-gradient-bg rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
                       variants={itemVariants}
                       initial="initial"
                       animate="visible"
@@ -335,19 +335,19 @@ const OrdersManagement = () => {
                     >
                       <div className="p-6">
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-orange-600 transition-colors">
+                          <h3 className="text-xl font-bold text-white group-hover:text-orange-600 transition-colors">
                             Order #{order._id.slice(-6)}
                           </h3>
                           <span
                             className={`flex items-center space-x-2 px-3 py-1 rounded-full font-semibold text-sm ${order.status === 'Pending'
-                              ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
+                              ? 'bg-blue-900text-blue-400'
                               : order.status === 'Preparing'
-                                ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-400'
+                                ? 'bg-yellow-900 text-yellow-400'
                                 : order.status === 'Ready'
-                                  ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400'
+                                  ? 'bg-green-900 text-green-400'
                                   : order.status === 'Delivered'
-                                    ? 'bg-teal-100 text-teal-600 dark:bg-teal-900 dark:text-teal-400'
-                                    : 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400'
+                                    ? 'bg-teal-900 text-teal-400'
+                                    : 'bg-red-900 text-red-400'
                               }`}
                           >
                             {order.status === 'Pending' && <ClockIcon className="h-5 w-5" />}
@@ -358,18 +358,18 @@ const OrdersManagement = () => {
                             <span>{order.status}</span>
                           </span>
                         </div>
-                        <p className="text-gray-600 dark:text-gray-300 mb-2">
+                        <p className="text-gray-300 mb-2">
                           <span className="font-semibold">Customer:</span> {order.user?.name || 'N/A'} (
                           {order.phone || 'N/A'})
                         </p>
-                        <p className="text-gray-600 dark:text-gray-300 mb-2">
+                        <p className="text-gray-300 mb-2">
                           <span className="font-semibold">Items:</span>{' '}
                           {order.items.map((item) => `${item.qty} x ${item.menuItem.name}`).join(', ')}
                         </p>
-                        <p className="text-lg font-bold text-orange-600 dark:text-orange-400 mb-2">
+                        <p className="text-lg font-bold text-orange-400 mb-2">
                           ${typeof order.totalPrice === 'number' ? order.totalPrice.toFixed(2) : parseFloat(order.totalPrice || 0).toFixed(2)}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                        <p className="text-sm text-gray-400 mb-2">
                           <span className="font-semibold">Placed:</span>{' '}
                           {new Date(order.createdAt).toLocaleString('en-US', {
                             month: 'short',
@@ -380,7 +380,7 @@ const OrdersManagement = () => {
                           })}
                         </p>
                         {order.status === 'Ready' && order.readyAt && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                          <p className="text-sm text-gray-400 mb-2">
                             <span className="font-semibold">Ready:</span>{' '}
                             {new Date(order.readyAt).toLocaleString('en-US', {
                               month: 'short',
@@ -392,7 +392,7 @@ const OrdersManagement = () => {
                           </p>
                         )}
                         {order.status === 'Delivered' && order.deliveredAt && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                          <p className="text-sm text-gray-400 mb-2">
                             <span className="font-semibold">Delivered:</span>{' '}
                             {new Date(order.deliveredAt).toLocaleString('en-US', {
                               month: 'short',
@@ -404,7 +404,7 @@ const OrdersManagement = () => {
                           </p>
                         )}
                         {order.status === 'Cancelled' && order.cancelledAt && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                          <p className="text-sm text-gray-400 mb-2">
                             <span className="font-semibold">Cancelled:</span>{' '}
                             {new Date(order.cancelledAt).toLocaleString('en-US', {
                               month: 'short',
@@ -419,7 +419,7 @@ const OrdersManagement = () => {
                           {order.status === 'Pending' && (
                             <motion.button
                               onClick={() => updateStatus(order._id, 'Preparing')}
-                              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-full font-semibold"
+                              className="bg-button-bg-primary text-white px-4 py-2 rounded-full font-semibold"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -470,8 +470,8 @@ const OrdersManagement = () => {
                       key={page}
                       onClick={() => handlePageChange(page)}
                       className={`px-4 py-2 rounded-full font-semibold ${currentPage === page
-                        ? 'bg-orange-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-orange-900/50'
+                        ? 'bg-button-bg-primary text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-orange-900/50'
                         }`}
                     >
                       {page}

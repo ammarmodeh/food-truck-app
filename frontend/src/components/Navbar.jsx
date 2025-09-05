@@ -12,7 +12,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+  // const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isAdminToolsOpen, setIsAdminToolsOpen] = useState(false);
@@ -59,9 +59,9 @@ const Navbar = () => {
   }, [isMobileMenuOpen]);
 
   // Existing useEffects
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
+  // useEffect(() => {
+  //   document.documentElement.classList.toggle('dark', theme === 'dark');
+  // }, [theme]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -321,17 +321,17 @@ const Navbar = () => {
                 <AnimatePresence>
                   {isAccountMenuOpen && (
                     <motion.div
-                      className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl py-2 z-50 border border-gray-100 dark:border-gray-700"
+                      className="absolute right-0 mt-2 w-64 card-gradient-bg rounded-xl shadow-2xl py-2 z-50 border border-gray-700"
                       initial="hidden"
                       animate="visible"
                       exit="exit"
                       variants={dropdownVariants}
                     >
-                      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                        <p className="text-gray-800 dark:text-white font-semibold flex justify-between items-center">
+                      <div className="px-4 py-3 border-b border-gray-700">
+                        <p className="text-white font-semibold flex justify-between items-center">
                           <span>{user?.name}</span>
                           {user?.isAdmin && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-gray-200">
                               Admin
                             </span>
                           )}
@@ -340,7 +340,7 @@ const Navbar = () => {
                       </div>
                       <Link
                         to="/profile"
-                        className="flex items-center space-x-2 px-4 py-3 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                        className="flex items-center space-x-2 px-4 py-3 text-white hover:bg-gray-700 transition-colors duration-200"
                         onClick={() => setIsAccountMenuOpen(false)}
                       >
                         <span>👤</span>
@@ -348,7 +348,7 @@ const Navbar = () => {
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center space-x-2 w-full text-left px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
+                        className="flex items-center space-x-2 w-full text-left px-4 py-3 text-red-400 hover:bg-red-900/20 transition-colors duration-200"
                       >
                         <span>🚪</span>
                         <span>Logout</span>
@@ -356,7 +356,7 @@ const Navbar = () => {
                       <button
                         onClick={handleWakeServer}
                         disabled={isWaking}
-                        className={`flex items-center space-x-2 w-full text-left px-4 py-3 transition-colors duration-200 ${isWaking ? 'opacity-50 cursor-not-allowed' : 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'}`}
+                        className={`flex items-center space-x-2 w-full text-left px-4 py-3 transition-colors duration-200 ${isWaking ? 'opacity-50 cursor-not-allowed' : 'text-green-400 hover:bg-green-900/20'}`}
                       >
                         <span>⚡</span>
                         <span>{isWaking ? 'Waking...' : 'Wake Server'}</span>
@@ -531,7 +531,7 @@ const Navbar = () => {
           const isActive = isActivePath(item.path);
           return (
             <motion.div
-              key={item.name}
+              key={`item.name-${index}`}
               className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300 ${isActive ? 'bg-white/30 text-white shadow-lg' : 'hover:bg-white/20'}`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -564,7 +564,7 @@ const Navbar = () => {
           <AnimatePresence>
             {isAdminToolsOpen && (
               <motion.div
-                className="absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl py-2 z-50 border border-gray-100 dark:border-gray-700"
+                className="absolute left-0 mt-2 w-64 card-gradient-bg rounded-xl shadow-2xl py-2 z-50 border border-gray-700"
                 initial="hidden"
                 animate="visible"
                 exit="exit"
@@ -574,7 +574,7 @@ const Navbar = () => {
                   <Link
                     key={item.name}
                     to={item.path}
-                    className="flex items-center space-x-2 px-4 py-3 text-gray-800 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                    className="flex items-center space-x-2 px-4 py-3 text-white hover:bg-gray-700 transition-colors duration-200"
                     onClick={() => setIsAdminToolsOpen(false)}
                   >
                     <span>{item.icon}</span>
@@ -591,12 +591,12 @@ const Navbar = () => {
 
   return (
     <motion.nav
-      className="sticky top-0 z-40 bg-gradient-to-r from-orange-600 via-orange-500 to-red-500 text-white shadow-3xl backdrop-blur-sm h-[72px]"
+      className="sticky top-0 z-40 bg-gradient-to-r from-orange-600/10 via-orange-500/10 to-red-500/10 text-white shadow-3xl backdrop-blur-xl h-[72px]"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, type: 'spring', stiffness: 100 }}
     >
-      <div className="absolute inset-0 bg-[#1f4499]"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-[#1f4499] via-gray-900 to-black"></div>
       <div className="relative container mx-auto sm:px-6 h-full">
         <div className="flex justify-between items-center h-full px-4">
           <motion.div
@@ -714,7 +714,7 @@ const Navbar = () => {
           )}
         </AnimatePresence>
       </div>
-    </motion.nav>
+    </motion.nav >
   );
 };
 

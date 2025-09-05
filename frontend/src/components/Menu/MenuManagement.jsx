@@ -133,21 +133,21 @@ const MenuManagement = () => {
   if (!user || !user.isAdmin) {
     return (
       <motion.div
-        className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+        className="min-h-screen from-gray-900 via-gray-800 to-gray-900"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <div className="container mx-auto px-6 py-12">
+        <div className="section-container">
           <motion.div
-            className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+            className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm"
             variants={itemVariants}
           >
             <div className="text-6xl mb-4">🔐</div>
-            <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Access Denied</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">This page is for admins only.</p>
+            <h3 className="text-2xl font-bold text-gray-300 mb-2">Access Denied</h3>
+            <p className="text-gray-400 mb-6">This page is for admins only.</p>
             <motion.button
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold"
+              className="bg-button-bg-primary text-white px-8 py-3 rounded-full font-semibold"
               whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(251, 146, 60, 0.4)' }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/login')}
@@ -162,14 +162,14 @@ const MenuManagement = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+      className="min-h-screen from-gray-900 via-gray-800 to-gray-900"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="container mx-auto px-6 py-12">
+      <div className="section-container">
         <motion.h2
-          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          className="section-heading"
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -180,50 +180,50 @@ const MenuManagement = () => {
 
         {/* Add Menu Item Form */}
         <motion.section className="mb-12" variants={itemVariants}>
-          <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
+          <div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
             <div className="flex items-center justify-center space-x-3 mb-6">
-              <PlusIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-              <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Add Menu Item</h3>
+              <PlusIcon className="h-8 w-8 text-orange-400" />
+              <h3 className="text-2xl font-bold text-white">Add Menu Item</h3>
             </div>
             <form onSubmit={addMenuItem}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Name *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Name *</label>
                   <input
                     name="name"
                     value={menuForm.name}
                     onChange={handleMenuChange}
                     placeholder="Item Name"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Category *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Category *</label>
                   <input
                     name="category"
                     value={menuForm.category}
                     onChange={handleMenuChange}
                     placeholder="Category"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Description</label>
+                <label className="block text-gray-300 font-semibold mb-1">Description</label>
                 <textarea
                   name="description"
                   value={menuForm.description}
                   onChange={handleMenuChange}
                   placeholder="Item Description"
-                  className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                  className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                   rows="3"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Price ($)*</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Price ($)*</label>
                   <input
                     name="price"
                     type="number"
@@ -231,36 +231,36 @@ const MenuManagement = () => {
                     value={menuForm.price}
                     onChange={handleMenuChange}
                     placeholder="Price"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Prep Time (min)</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Prep Time (min)</label>
                   <input
                     name="prepTime"
                     type="number"
                     value={menuForm.prepTime}
                     onChange={handleMenuChange}
                     placeholder="Prep Time"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     min="1"
                   />
                 </div>
               </div>
               <div className="mb-6">
-                <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Image URL</label>
+                <label className="block text-gray-300 font-semibold mb-1">Image URL</label>
                 <input
                   name="image"
                   value={menuForm.image}
                   onChange={handleMenuChange}
                   placeholder="Image URL"
-                  className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                  className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                 />
               </div>
               <motion.button
                 type="submit"
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-full font-semibold"
+                className="w-full bg-button-bg-primary text-white py-3 rounded-full font-semibold"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -273,7 +273,7 @@ const MenuManagement = () => {
         {/* Menu Items List */}
         <motion.section className="mb-12" variants={itemVariants}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Manage Menu Items</h3>
+            <h3 className="text-2xl font-bold text-white">Manage Menu Items</h3>
             <input
               type="text"
               placeholder="Search by Name or Category"
@@ -282,7 +282,7 @@ const MenuManagement = () => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1); // Reset to first page on search
               }}
-              className="w-full max-w-md p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+              className="w-full max-w-md p-3 rounded-xl bg-gray-700/50 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
             />
           </div>
 
@@ -291,26 +291,26 @@ const MenuManagement = () => {
               {[1, 2, 3].map((_, index) => (
                 <motion.div
                   key={index}
-                  className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg animate-pulse"
+                  className="card-gradient-bg p-6 rounded-3xl shadow-lg animate-pulse"
                   variants={itemVariants}
                 >
-                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-4"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-3"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-3"></div>
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="h-6 bg-gray-700 rounded w-1/2 mb-4"></div>
+                  <div className="h-4 bg-gray-700 rounded w-3/4 mb-3"></div>
+                  <div className="h-4 bg-gray-700 rounded w-full mb-3"></div>
+                  <div className="h-4 bg-gray-700 rounded w-1/2"></div>
                 </motion.div>
               ))}
             </div>
           ) : error ? (
             <motion.div
-              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
+              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
               variants={itemVariants}
             >
               <div className="text-6xl mb-4">🍽️</div>
-              <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Unable to load menu items</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
+              <h3 className="text-2xl font-bold text-gray-300 mb-2">Unable to load menu items</h3>
+              <p className="text-gray-400 mb-6">{error}</p>
               <motion.button
-                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold"
+                className="bg-button-bg-primary text-white px-8 py-3 rounded-full font-semibold"
                 whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(251, 146, 60, 0.4)' }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => window.location.reload()}
@@ -320,12 +320,12 @@ const MenuManagement = () => {
             </motion.div>
           ) : filteredItems.length === 0 ? (
             <motion.div
-              className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
+              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700"
               variants={itemVariants}
             >
               <div className="text-6xl mb-4">🍽️</div>
-              <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">No menu items found</h3>
-              <p className="text-gray-500 dark:text-gray-400">
+              <h3 className="text-2xl font-bold text-gray-300 mb-2">No menu items found</h3>
+              <p className="text-gray-400">
                 {searchQuery ? 'No menu items match your search criteria.' : 'No menu items available.'}
               </p>
             </motion.div>
@@ -336,7 +336,7 @@ const MenuManagement = () => {
                   {paginatedItems.map((item) => (
                     <motion.div
                       key={item._id}
-                      className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
+                      className="relative card-gradient-bg rounded-3xl shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-500 border-1 border-gray-700"
                       variants={itemVariants}
                       initial="initial"
                       animate="visible"
@@ -348,42 +348,42 @@ const MenuManagement = () => {
                           <form onSubmit={(e) => updateMenuItem(item._id, e)}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                               <div>
-                                <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Name *</label>
+                                <label className="block text-gray-300 font-semibold mb-1">Name *</label>
                                 <input
                                   name="name"
                                   value={menuForm.name}
                                   onChange={handleMenuChange}
                                   placeholder="Item Name"
-                                  className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                                  className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                                   required
                                 />
                               </div>
                               <div>
-                                <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Category *</label>
+                                <label className="block text-gray-300 font-semibold mb-1">Category *</label>
                                 <input
                                   name="category"
                                   value={menuForm.category}
                                   onChange={handleMenuChange}
                                   placeholder="Category"
-                                  className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                                  className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                                   required
                                 />
                               </div>
                             </div>
                             <div className="mb-4">
-                              <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Description</label>
+                              <label className="block text-gray-300 font-semibold mb-1">Description</label>
                               <textarea
                                 name="description"
                                 value={menuForm.description}
                                 onChange={handleMenuChange}
                                 placeholder="Item Description"
-                                className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                                className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                                 rows="3"
                               />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                               <div>
-                                <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Price ($)*</label>
+                                <label className="block text-gray-300 font-semibold mb-1">Price ($)*</label>
                                 <input
                                   name="price"
                                   type="number"
@@ -391,31 +391,31 @@ const MenuManagement = () => {
                                   value={menuForm.price}
                                   onChange={handleMenuChange}
                                   placeholder="Price"
-                                  className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                                  className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                                   required
                                 />
                               </div>
                               <div>
-                                <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Prep Time (min)</label>
+                                <label className="block text-gray-300 font-semibold mb-1">Prep Time (min)</label>
                                 <input
                                   name="prepTime"
                                   type="number"
                                   value={menuForm.prepTime}
                                   onChange={handleMenuChange}
                                   placeholder="Prep Time"
-                                  className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                                  className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                                   min="1"
                                 />
                               </div>
                             </div>
                             <div className="mb-4">
-                              <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Image URL</label>
+                              <label className="block text-gray-300 font-semibold mb-1">Image URL</label>
                               <input
                                 name="image"
                                 value={menuForm.image}
                                 onChange={handleMenuChange}
                                 placeholder="Image URL"
-                                className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                                className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                               />
                             </div>
                             <div className="flex justify-end space-x-4">
@@ -444,10 +444,10 @@ const MenuManagement = () => {
                         ) : (
                           <>
                             <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-xl font-bold text-gray-800 dark:text-white group-hover:text-orange-600 transition-colors">
+                              <h3 className="text-xl font-bold text-white group-hover:text-orange-600 transition-colors">
                                 {item.name}
                               </h3>
-                              <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400 font-semibold text-sm">
+                              <span className="px-3 py-1 rounded-full bg-blue-900 text-blue-400 font-semibold text-sm">
                                 {item.category}
                               </span>
                             </div>
@@ -458,11 +458,11 @@ const MenuManagement = () => {
                                 className="w-full h-48 object-cover rounded-lg mb-4"
                               />
                             )}
-                            <p className="text-gray-600 dark:text-gray-300 mb-2">{item.description || 'No description'}</p>
-                            <p className="text-lg font-bold text-orange-600 dark:text-orange-400 mb-2">
+                            <p className="text-gray-300 mb-2">{item.description || 'No description'}</p>
+                            <p className="text-lg font-bold text-orange-400 mb-2">
                               ${item.price.toFixed(2)}
                             </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            <p className="text-sm text-gray-400 mb-4">
                               Prep Time: {item.prepTime} min
                             </p>
                             <div className="flex justify-end space-x-4">
@@ -510,8 +510,8 @@ const MenuManagement = () => {
                       key={page}
                       onClick={() => handlePageChange(page)}
                       className={`px-4 py-2 rounded-full font-semibold ${currentPage === page
-                        ? 'bg-orange-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-orange-900/50'
+                        ? 'bg-button-bg-primary text-white'
+                        : 'bg-gray-700 text-gray-300 hover:bg-orange-900/50'
                         }`}
                     >
                       {page}

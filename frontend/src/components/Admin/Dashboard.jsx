@@ -419,16 +419,16 @@ const Dashboard = () => {
         initial="hidden"
         animate="visible"
       >
-        <div className="container mx-auto px-6 py-12">
+        <div className="section-container">
           <motion.div
-            className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm"
+            className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm"
             variants={itemVariants}
           >
             <div className="text-6xl mb-4">🔐</div>
-            <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Access Denied</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">This page is for admins only.</p>
+            <h3 className="text-2xl font-bold text-gray-300 mb-2">Access Denied</h3>
+            <p className="text-gray-400 mb-6">This page is for admins only.</p>
             <motion.button
-              className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold"
+              className="bg-button-bg-primary text-white px-8 py-3 rounded-full font-semibold"
               whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(251, 146, 60, 0.4)' }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/login')}
@@ -448,9 +448,9 @@ const Dashboard = () => {
       initial="hidden"
       animate="visible"
     >
-      <div className={`container mx-auto px-0 py-12 sm:px-6`}>
+      <div className='section-container'>
         <motion.h2
-          className="text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif"
+          className="section-heading"
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -462,17 +462,17 @@ const Dashboard = () => {
         <motion.section className="mb-12" variants={itemVariants}>
           <div className="flex flex-col md:flex-row items-center justify-between mb-10 sm:mb-6">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
-              <ChartBarIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-              <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard Analytics</h3>
+              <ChartBarIcon className="h-8 w-8 text-orange-400" />
+              <h3 className="text-2xl font-bold text-white">Dashboard Analytics</h3>
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <div className="flex items-center space-x-2 bg-white dark:bg-gray-700 rounded-full px-4 py-2 shadow-sm">
+              <div className="flex items-center space-x-2 bg-gray-700 rounded-full px-4 py-2 shadow-sm">
                 <CalendarIcon className="h-5 w-5 text-orange-500" />
                 <select
                   value={timeFrame}
                   onChange={(e) => setTimeFrame(e.target.value)}
-                  className="bg-transparent border-none outline-none text-gray-700 dark:text-gray-300"
+                  className="bg-transparent border-none outline-none text-gray-300"
                 >
                   <option value="day">Daily</option>
                   <option value="week">Weekly</option>
@@ -493,24 +493,24 @@ const Dashboard = () => {
           </div>
 
           {loading ? (
-            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm">
+            <div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="h-28 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+                  <div key={i} className="h-28 bg-gray-700 rounded-2xl animate-pulse"></div>
                 ))}
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
-                <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-2xl animate-pulse"></div>
+                <div className="h-64 bg-gray-700 rounded-2xl animate-pulse"></div>
+                <div className="h-64 bg-gray-700 rounded-2xl animate-pulse"></div>
               </div>
             </div>
           ) : error ? (
-            <div className="text-center py-12 bg-white/80 dark:bg-gray-800/80 rounded-3xl shadow-lg backdrop-blur-sm">
+            <div className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm">
               <div className="text-6xl mb-4">📊</div>
-              <h3 className="text-2xl font-bold text-gray-600 dark:text-gray-300 mb-2">Unable to load stats</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-6">{error}</p>
+              <h3 className="text-2xl font-bold text-gray-300 mb-2">Unable to load stats</h3>
+              <p className="text-gray-400 mb-6">{error}</p>
               <motion.button
-                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-3 rounded-full font-semibold"
+                className="bg-button-bg-primary text-white px-8 py-3 rounded-full font-semibold"
                 whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(251, 146, 60, 0.4)' }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => window.location.reload()}
@@ -519,31 +519,31 @@ const Dashboard = () => {
               </motion.button>
             </div>
           ) : (
-            <motion.div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700" variants={itemVariants}>
+            <motion.div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700" variants={itemVariants}>
               {/* Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
-                <div className="p-6 bg-gradient-to-r from-orange-100 to-orange-200 dark:from-orange-900 dark:to-orange-800 rounded-2xl shadow-md">
-                  <p className="text-lg text-gray-700 dark:text-gray-300">Delivered Orders</p>
-                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{stats.orders}</p>
+                <div className="p-6 bg-gradient-to-r from-orange-900 to-orange-800 rounded-2xl shadow-md">
+                  <p className="text-lg text-gray-300">Delivered Orders</p>
+                  <p className="text-3xl font-bold text-orange-400">{stats.orders}</p>
                 </div>
 
-                <div className="p-6 bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-2xl shadow-md">
-                  <p className="text-lg text-gray-700 dark:text-gray-300">Total Revenue</p>
-                  <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">${stats.revenue.toFixed(2)}</p>
+                <div className="p-6 bg-gradient-to-r from-blue-900 to-blue-800 rounded-2xl shadow-md">
+                  <p className="text-lg text-gray-300">Total Revenue</p>
+                  <p className="text-3xl font-bold text-blue-400">${stats.revenue.toFixed(2)}</p>
                 </div>
               </div>
 
               {/* Charts Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <div className="bg-white dark:bg-gray-700 p-4 rounded-2xl shadow-md">
-                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Revenue Trend</h4>
+                <div className="bg-gray-700 p-4 rounded-2xl shadow-md">
+                  <h4 className="text-lg font-semibold text-gray-200 mb-4 text-center">Revenue Trend</h4>
                   <div className="h-64">
                     <Line data={revenueChartData} options={chartOptions} />
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-700 p-4 rounded-2xl shadow-md">
-                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Orders Trend</h4>
+                <div className="bg-gray-700 p-4 rounded-2xl shadow-md">
+                  <h4 className="text-lg font-semibold text-gray-200 mb-4 text-center">Orders Trend</h4>
                   <div className="h-64">
                     <Line data={ordersChartData} options={ordersChartOptions} />
                   </div>
@@ -552,8 +552,8 @@ const Dashboard = () => {
 
               {/* Top Items Chart */}
               {stats.topItems && stats.topItems.length > 0 && (
-                <div className="bg-white dark:bg-gray-700 p-4 rounded-2xl shadow-md mt-6">
-                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 text-center">Top Selling Items</h4>
+                <div className="bg-gray-700 p-4 rounded-2xl shadow-md mt-6">
+                  <h4 className="text-lg font-semibold text-gray-200 mb-4 text-center">Top Selling Items</h4>
                   <div className="h-64">
                     <Pie data={topItemsChartData} options={{
                       responsive: true,
@@ -588,36 +588,36 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <motion.section variants={itemVariants}>
-            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
+            <div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
               <div className="flex items-center justify-center space-x-3 mb-6">
-                <PlusIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-                <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Add Menu Item</h3>
+                <PlusIcon className="h-8 w-8 text-orange-400" />
+                <h3 className="text-2xl font-bold text-white">Add Menu Item</h3>
               </div>
               <form onSubmit={addMenuItem}>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Name *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Name *</label>
                   <input
                     name="name"
                     value={menuForm.name}
                     onChange={handleMenuChange}
                     placeholder="Item Name"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Description</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Description</label>
                   <textarea
                     name="description"
                     value={menuForm.description}
                     onChange={handleMenuChange}
                     placeholder="Item Description"
-                    className="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     rows="3"
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Price ($)*</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Price ($)*</label>
                   <input
                     name="price"
                     type="number"
@@ -625,46 +625,46 @@ const Dashboard = () => {
                     value={menuForm.price}
                     onChange={handleMenuChange}
                     placeholder="Price"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Category *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Category *</label>
                   <input
                     name="category"
                     value={menuForm.category}
                     onChange={handleMenuChange}
                     placeholder="Category"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Image URL</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Image URL</label>
                   <input
                     name="image"
                     value={menuForm.image}
                     onChange={handleMenuChange}
                     placeholder="Image URL"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                   />
                 </div>
                 <div className="mb-6">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Prep Time (min)</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Prep Time (min)</label>
                   <input
                     name="prepTime"
                     type="number"
                     value={menuForm.prepTime}
                     onChange={handleMenuChange}
                     placeholder="Prep Time"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     min="1"
                   />
                 </div>
                 <motion.button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-full font-semibold"
+                  className="w-full bg-button-bg-primary text-white py-3 rounded-full font-semibold"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -675,68 +675,68 @@ const Dashboard = () => {
           </motion.section>
 
           <motion.section variants={itemVariants}>
-            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
+            <div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
               <div className="flex items-center justify-center space-x-3 mb-6">
-                <PlusIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-                <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Add Schedule</h3>
+                <PlusIcon className="h-8 w-8 text-orange-400" />
+                <h3 className="text-2xl font-bold text-white">Add Schedule</h3>
               </div>
               <form onSubmit={addSchedule}>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Date *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Date *</label>
                   <input
                     name="date"
                     type="date"
                     value={scheduleForm.date}
                     onChange={handleScheduleChange}
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Location *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Location *</label>
                   <input
                     name="location"
                     value={scheduleForm.location}
                     onChange={handleScheduleChange}
                     placeholder="Location"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">State</label>
+                  <label className="block text-gray-300 font-semibold mb-1">State</label>
                   <input
                     name="state"
                     value={scheduleForm.state}
                     onChange={handleScheduleChange}
                     placeholder="State"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Start Time *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Start Time *</label>
                   <input
                     name="startTime"
                     value={scheduleForm.startTime}
                     onChange={handleScheduleChange}
                     placeholder="Start Time (e.g., 10:00 AM)"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">End Time *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">End Time *</label>
                   <input
                     name="endTime"
                     value={scheduleForm.endTime}
                     onChange={handleScheduleChange}
                     placeholder="End Time (e.g., 6:00 PM)"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Latitude</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Latitude</label>
                   <input
                     name="coordinates.lat"
                     type="number"
@@ -744,11 +744,11 @@ const Dashboard = () => {
                     value={scheduleForm.coordinates.lat}
                     onChange={(e) => setScheduleForm({ ...scheduleForm, coordinates: { ...scheduleForm.coordinates, lat: parseFloat(e.target.value) || 0 } })}
                     placeholder="Latitude"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                   />
                 </div>
                 <div className="mb-6">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Longitude</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Longitude</label>
                   <input
                     name="coordinates.lng"
                     type="number"
@@ -756,12 +756,12 @@ const Dashboard = () => {
                     value={scheduleForm.coordinates.lng}
                     onChange={(e) => setScheduleForm({ ...scheduleForm, coordinates: { ...scheduleForm.coordinates, lng: parseFloat(e.target.value) || 0 } })}
                     placeholder="Longitude"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                   />
                 </div>
                 <motion.button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-full font-semibold"
+                  className="w-full bg-button-bg-primary text-white py-3 rounded-full font-semibold"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -772,25 +772,25 @@ const Dashboard = () => {
           </motion.section>
 
           <motion.section variants={itemVariants}>
-            <div className="bg-white/80 dark:bg-gray-800/80 p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
+            <div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
               <div className="flex items-center justify-center space-x-3 mb-6">
-                <PlusIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-                <h3 className="text-2xl font-bold text-gray-800 dark:text-white">Update Current Location</h3>
+                <PlusIcon className="h-8 w-8 text-orange-400" />
+                <h3 className="text-2xl font-bold text-white">Update Current Location</h3>
               </div>
               <form onSubmit={updateLocation}>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Current Location *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Current Location *</label>
                   <input
                     name="currentLocation"
                     value={locationForm.currentLocation}
                     onChange={handleLocationChange}
                     placeholder="Current Location"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Latitude *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Latitude *</label>
                   <input
                     name="coordinates.lat"
                     type="number"
@@ -798,12 +798,12 @@ const Dashboard = () => {
                     value={locationForm.coordinates.lat}
                     onChange={(e) => setLocationForm({ ...locationForm, coordinates: { ...locationForm.coordinates, lat: parseFloat(e.target.value) || 0 } })}
                     placeholder="Latitude"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <div className="mb-6">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-1">Longitude *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Longitude *</label>
                   <input
                     name="coordinates.lng"
                     type="number"
@@ -811,13 +811,13 @@ const Dashboard = () => {
                     value={locationForm.coordinates.lng}
                     onChange={(e) => setLocationForm({ ...locationForm, coordinates: { ...locationForm.coordinates, lng: parseFloat(e.target.value) || 0 } })}
                     placeholder="Longitude"
-                    className="w-full p-3 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                     required
                   />
                 </div>
                 <motion.button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-full font-semibold"
+                  className="w-full bg-button-bg-primary text-white py-3 rounded-full font-semibold"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >

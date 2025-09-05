@@ -10,14 +10,14 @@ const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
 const renderMap = (status) => {
   if (status === Status.LOADING)
     return (
-      <div className="h-64 w-full rounded-3xl bg-gray-200 dark:bg-gray-700 animate-pulse flex items-center justify-center">
-        <span className="text-gray-500 dark:text-gray-400">Loading map...</span>
+      <div className="h-64 w-full rounded-3xl bg-gray-700 animate-pulse flex items-center justify-center">
+        <span className="text-gray-400">Loading map...</span>
       </div>
     );
   if (status === Status.FAILURE)
     return (
-      <div className="h-64 w-full rounded-3xl bg-red-100 dark:bg-red-900 flex items-center justify-center">
-        <span className="text-red-600 dark:text-red-400">Error loading map</span>
+      <div className="h-64 w-full rounded-3xl bg-red-900 flex items-center justify-center">
+        <span className="text-red-400">Error loading map</span>
       </div>
     );
   return null;
@@ -245,7 +245,7 @@ const Home = () => {
               {item.description}
             </p>
           )}
-          <p className="text-4xl font-black text-[#f7a727]">
+          <p className="text-4xl font-black text-text-primary">
             ${typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price || 0).toFixed(2)}
           </p>
         </div>
@@ -534,7 +534,7 @@ const Home = () => {
                     {upcomingSchedule.map((schedule, index) => (
                       <motion.div
                         key={schedule._id}
-                        className="relative bg-gradient-to-br from-slate-900/70 via-slate-800/70 to-slate-900/70 backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 group"
+                        className="relative card-gradient-bg backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 group"
                         viewport={{ once: true, margin: "-100px" }}
                       >
                         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-red-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -547,7 +547,7 @@ const Home = () => {
                             📍
                           </motion.div>
                           <motion.h3
-                            className="text-2xl font-bold text-white mb-4"
+                            className="text-lg font-bold text-white mb-4"
                             initial={{ y: 20, opacity: 0 }}
                             whileInView={{ y: 0, opacity: 1 }}
                             transition={{ delay: index * 0.1 }}
@@ -559,7 +559,7 @@ const Home = () => {
                             })}
                           </motion.h3>
                           <motion.p
-                            className="text-xl text-cyan-300 mb-3 flex items-center space-x-3"
+                            className="text-md text-cyan-300 mb-3 flex items-center space-x-3"
                             initial={{ y: 20, opacity: 0 }}
                             whileInView={{ y: 0, opacity: 1 }}
                             transition={{ delay: index * 0.1 + 0.1 }}
@@ -568,7 +568,7 @@ const Home = () => {
                             <span>{schedule.location}{schedule.state ? `, ${schedule.state}` : ''}</span>
                           </motion.p>
                           <motion.p
-                            className="text-lg text-orange-300 font-semibold flex items-center space-x-3 mb-4"
+                            className="text-md text-orange-300 font-semibold flex items-center space-x-3 mb-4"
                             initial={{ y: 20, opacity: 0 }}
                             whileInView={{ y: 0, opacity: 1 }}
                             transition={{ delay: index * 0.1 + 0.2 }}
@@ -595,8 +595,8 @@ const Home = () => {
                               <Map center={{ lat: schedule.coordinates.lat, lng: schedule.coordinates.lng }} />
                             </Wrapper>
                           ) : (
-                            <div className="h-64 w-full rounded-3xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                              <span className="text-gray-500 dark:text-gray-400">No map available</span>
+                            <div className="h-64 w-full rounded-3xl bg-gray-700 flex items-center justify-center">
+                              <span className="text-gray-400">No map available</span>
                             </div>
                           )}
                           {schedule.coordinates && (
@@ -610,7 +610,7 @@ const Home = () => {
                                 href={`https://www.google.com/maps/dir/?api=1&destination=${schedule.coordinates.lat},${schedule.coordinates.lng}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-full font-semibold text-sm"
+                                className="inline-flex items-center bg-button-bg-primary text-white px-4 py-2 rounded-full font-semibold text-sm"
                                 whileHover={{ scale: 1.05, boxShadow: '0 10px 20px rgba(251, 146, 60, 0.3)' }}
                                 whileTap={{ scale: 0.95 }}
                               >
@@ -637,7 +637,7 @@ const Home = () => {
                         <div className="h-12 bg-gradient-to-r from-slate-600/50 to-slate-500/50 rounded-full mb-6 w-40"></div>
                         <div className="h-6 bg-slate-700/50 rounded-full mb-4"></div>
                         <div className="h-5 bg-slate-600/50 rounded-full w-48 mb-4"></div>
-                        <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-3xl"></div>
+                        <div className="h-64 bg-gray-700 rounded-3xl"></div>
                       </div>
                     </LoadingSkeleton>
                   ))}

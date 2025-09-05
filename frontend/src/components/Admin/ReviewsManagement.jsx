@@ -181,14 +181,14 @@ const ReviewsManagement = () => {
 
   return (
     <motion.section
-      className="py-32 relative"
+      className="section-container"
       variants={itemVariants}
       initial="hidden"
       animate="visible"
     >
       <div className="container mx-auto px-6">
         <motion.h2
-          className="text-5xl font-black mb-8 bg-gradient-to-r from-pink-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent text-center"
+          className="section-heading"
           initial={{ scale: 0.5 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.8, type: 'spring' }}
@@ -201,7 +201,7 @@ const ReviewsManagement = () => {
           className="mb-8 flex justify-center"
           variants={itemVariants}
         >
-          <div className="relative bg-gradient-to-br from-slate-900/70 via-slate-800/70 to-slate-900/70 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl shadow-2xl">
+          <div className="relative card-gradient-bg backdrop-blur-2xl border border-white/10 p-6 rounded-3xl shadow-2xl">
             <label className="text-white font-semibold mr-4">Filter by Rating:</label>
             <select
               value={filterRating}
@@ -263,7 +263,7 @@ const ReviewsManagement = () => {
             className="overflow-x-auto"
             variants={itemVariants}
           >
-            <table className="w-full bg-gradient-to-br from-slate-900/70 via-slate-800/70 to-slate-900/70 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl">
+            <table className="w-full card-gradient-bg backdrop-blur-2xl rounded-3xl shadow-2xl">
               <thead>
                 <tr className="text-white/80 border-b border-white/20">
                   <th className="py-4 px-6 text-left">Author</th>

@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+@theme {
+  --background-image-primary-background: linear-gradient(to bottom right, #020617, #0f172a, #020617);
+  --color-text-primary: #f7a727;
+  --color-button-bg-primary: #f4933c;
+}
+
+.section-container {
+  @apply container mx-auto px-6 py-12 pt-30;
+}
+
+.section-heading {
+  @apply text-5xl md:text-6xl font-extrabold tracking-tight text-center mb-16 text-[cornsilk] drop-shadow-sm font-serif;
+}
+
+.card-gradient-bg {
+  @apply bg-gradient-to-br from-slate-900/70 via-slate-800/70 to-slate-900/70;
+}
