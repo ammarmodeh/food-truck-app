@@ -18,7 +18,6 @@ export const login = (formData) => async (dispatch) => {
   try {
     dispatch({ type: 'SET_LOADING', payload: true });
     const config = { headers: { 'Content-Type': 'application/json' } };
-    // console.log({ formData });
     const res = await axios.post(`${import.meta.env.VITE_BACKEND_API}/api/auth/login`, formData, config);
     dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
     dispatch(loadUser());
@@ -35,11 +34,9 @@ export const forgotPassword = (formData) => async (dispatch) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     const config = { headers: { 'Content-Type': 'application/json' } };
     const res = await axios.post(`${import.meta.env.VITE_BACKEND_API}/api/auth/forgot-password`, formData, config);
-
-    // Return the reset token to the component
     return {
       resetToken: res.data.resetToken,
-      msg: res.data.msg
+      msg: res.data.msg,
     };
   } catch (err) {
     const errorMsg = err.response?.data?.msg || 'Failed to send reset OTP';
@@ -60,6 +57,33 @@ export const resetPassword = (formData) => async (dispatch) => {
     dispatch({ type: 'RESET_PASSWORD_FAIL', payload: err.response?.data?.msg || 'Failed to reset password' });
   } finally {
     dispatch({ type: 'SET_LOADING', payload: false });
+  }
+};
+
+export const validateResetToken = (token) => async (dispatch) => {
+  try {
+    dispatch({ type: 'VALIDATE_RESET_TOKEN_REQUEST' });
+    const res = await axios.get(`${import.meta.env.VITE_BACKEND_API}/api/auth/validate-reset-token/${token}`);
+    dispatch({
+      type: 'VALIDATE_RESET_TOKEN_SUCCESS',
+      payload: res.data.isValid,
+    });
+  } catch (err) {
+    dispatch({
+      type: 'VALIDATE_RESET_TOKEN_FAIL',
+      payload: err.response?.data?.msg || 'Invalid or expired token',
+    });
+  }
+};
+
+export const clearResetToken = (token) => async (dispatch) => {
+  try {
+    const config = { headers: { 'Content-Type': 'application/json' } };
+    await axios.post(`${import.meta.env.VITE_BACKEND_API}/api/auth/clear-reset-token`, { token }, config);
+    dispatch({ type: 'CLEAR_RESET_TOKEN' });
+  } catch (err) {
+    console.error('Error clearing reset token:', err);
+    dispatch({ type: 'CLEAR_RESET_TOKEN' }); // Clear anyway
   }
 };
 
@@ -91,8 +115,8 @@ export const updateUser = (formData) => async (dispatch) => {
     const config = {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      }
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
     };
     const res = await axios.put(`${import.meta.env.VITE_BACKEND_API}/api/auth/update`, formData, config);
     dispatch({ type: 'USER_UPDATED', payload: res.data.user });

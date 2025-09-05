@@ -36,18 +36,6 @@ const Footer = () => {
               quality ingredients, and unbeatable flavors. Follow our journey
               across the city!
             </p>
-            <div className="flex space-x-4">
-              {['📘', '📷', '🐦', '📺'].map((icon, index) => (
-                <motion.div
-                  key={index}
-                  className="w-12 h-12 bg-text-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-text-primary transition-colors"
-                  whileHover={{ scale: 1.2, rotate: 360 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <span className="text-xl">{icon}</span>
-                </motion.div>
-              ))}
-            </div>
           </div>
 
           {/* Quick Links */}
@@ -83,15 +71,11 @@ const Footer = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <span className="text-xl">📧</span>
-                <span className="text-gray-300">info@foodtruckdelight.com</span>
+                <span className="text-gray-300">odehmahmoud57@icloud.com</span>
               </div>
               <div className="flex items-center space-x-3">
                 <span className="text-xl">📱</span>
-                <span className="text-gray-300">(555) 123-FOOD</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span className="text-xl">📍</span>
-                <span className="text-gray-300">Mobile throughout CA</span>
+                <span className="text-gray-300">8136475651</span>
               </div>
             </div>
           </div>
@@ -105,7 +89,7 @@ const Footer = () => {
           transition={{ duration: 0.6 }}
         >
           <p className="text-gray-400 text-lg">
-            &copy; 2025 Food Truck Delight. All rights reserved. |
+            &copy; {new Date().getFullYear()} Bye Bye Etiquette. All rights reserved. |
             <span className="text-text-primary cursor-pointer"> Privacy Policy</span> |
             <span className="text-text-primary cursor-pointer"> Terms of Service</span>
           </p>

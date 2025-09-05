@@ -16,24 +16,56 @@ const Register = () => {
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [recaptchaError, setRecaptchaError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
+  const { isAuthenticated, loading, error, message } = useSelector((state) => state.auth);
+
+  // Clear messages after 60 seconds
+  useEffect(() => {
+    if (error || message || recaptchaError) {
+      const timer = setTimeout(() => {
+        dispatch(clearErrors());
+        setRecaptchaError(null);
+      }, 60000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, message, recaptchaError, dispatch]);
+
+  // Clear messages on navigation
+  useEffect(() => {
+    return () => {
+      dispatch(clearErrors());
+      setRecaptchaError(null);
+    };
+  }, [dispatch]);
 
   const onPhoneChange = (e) => {
     const value = e.target.value.replace(/[^\d]/g, ''); // Allow only digits
     setPhoneInput(value);
     setFormData({ ...formData, phone: value ? countryCode + value : '' });
+    dispatch(clearErrors()); // Clear messages on input change
+    setRecaptchaError(null);
   };
 
   const onCountryCodeChange = (e) => {
     const newCode = e.target.value;
     setCountryCode(newCode);
     setFormData({ ...formData, phone: phoneInput ? newCode + phoneInput : '' });
+    dispatch(clearErrors()); // Clear messages on input change
+    setRecaptchaError(null);
   };
 
   const onInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    dispatch(clearErrors()); // Clear messages on input change
+    setRecaptchaError(null);
+  };
+
+  const onOtpChange = (e) => {
+    setOtp(e.target.value);
+    dispatch(clearErrors()); // Clear messages on input change
+    setRecaptchaError(null);
   };
 
   const setupRecaptcha = () => {
@@ -112,6 +144,7 @@ const Register = () => {
 
   const requestOtp = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       if (!auth) {
         dispatch({ type: 'REGISTER_FAIL', payload: 'Firebase auth not initialized' });
@@ -132,6 +165,7 @@ const Register = () => {
         });
         return;
       }
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // 3-second delay for testing
       const result = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
       setConfirmationResult(result);
       setShowOtpField(true);
@@ -146,21 +180,28 @@ const Register = () => {
           window.grecaptcha.reset(widgetId);
         });
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     if (!confirmationResult) {
       dispatch({ type: 'REGISTER_FAIL', payload: 'Please request OTP first' });
+      setIsSubmitting(false);
       return;
     }
     try {
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // 3-second delay for testing
       await confirmationResult.confirm(otp);
       dispatch(register({ ...formData, phoneVerified: true }));
     } catch (err) {
       console.error('Error in onSubmit:', err.code, err.message);
       dispatch({ type: 'REGISTER_FAIL', payload: `Invalid OTP: ${err.message}` });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -294,7 +335,7 @@ const Register = () => {
               <input
                 type="text"
                 value={otp}
-                onChange={(e) => setOtp(e.target.value)}
+                onChange={onOtpChange}
                 placeholder="Enter OTP (e.g., 123456)"
                 className="w-full p-4 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                 required
@@ -310,9 +351,9 @@ const Register = () => {
               className="w-full bg-button-bg-primary text-white p-4 rounded-xl font-semibold shadow-lg"
               whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -10px rgba(249, 115, 22, 0.5)' }}
               whileTap={{ scale: 0.98 }}
-              disabled={loading}
+              disabled={isSubmitting || loading}
             >
-              {loading ? (
+              {isSubmitting || loading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-5 h-5 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
                   {showOtpField ? 'Verifying...' : 'Sending OTP...'}

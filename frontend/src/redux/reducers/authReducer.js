@@ -4,7 +4,9 @@ const initialState = {
   user: null,
   error: null,
   message: null,
-  isLoading: false, // Initialize as false to avoid initial loading state
+  isLoading: false,
+  isTokenValid: null,
+  tokenValidationLoading: false,
 };
 
 const authReducer = (state = initialState, action) => {
@@ -13,6 +15,30 @@ const authReducer = (state = initialState, action) => {
       return {
         ...state,
         isLoading: action.payload,
+      };
+    case 'VALIDATE_RESET_TOKEN_REQUEST':
+      return {
+        ...state,
+        tokenValidationLoading: true,
+        error: null,
+      };
+    case 'VALIDATE_RESET_TOKEN_SUCCESS':
+      return {
+        ...state,
+        tokenValidationLoading: false,
+        isTokenValid: action.payload,
+      };
+    case 'VALIDATE_RESET_TOKEN_FAIL':
+      return {
+        ...state,
+        tokenValidationLoading: false,
+        isTokenValid: false,
+        error: action.payload,
+      };
+    case 'CLEAR_RESET_TOKEN':
+      return {
+        ...state,
+        isTokenValid: null,
       };
     case 'REGISTER_SUCCESS':
     case 'LOGIN_SUCCESS':
@@ -25,6 +51,7 @@ const authReducer = (state = initialState, action) => {
         error: null,
         message: null,
         isLoading: false,
+        isTokenValid: null,
       };
     case 'USER_LOADED':
     case 'USER_UPDATED':
@@ -35,6 +62,7 @@ const authReducer = (state = initialState, action) => {
         error: null,
         message: null,
         isLoading: false,
+        isTokenValid: null,
       };
     case 'FORGOT_PASSWORD_SUCCESS':
     case 'RESET_PASSWORD_SUCCESS':
@@ -43,6 +71,7 @@ const authReducer = (state = initialState, action) => {
         message: action.payload,
         error: null,
         isLoading: false,
+        isTokenValid: null, // Invalidate token after reset
       };
     case 'LOGIN_FAIL':
     case 'REGISTER_FAIL':
@@ -66,6 +95,7 @@ const authReducer = (state = initialState, action) => {
         error: action.payload || null,
         message: null,
         isLoading: false,
+        isTokenValid: null,
       };
     case 'CLEAR_ERRORS':
       return {

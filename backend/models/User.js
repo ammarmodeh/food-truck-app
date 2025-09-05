@@ -4,9 +4,10 @@ import bcrypt from 'bcryptjs';
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   password: { type: String, required: true },
-  phone: { type: String, required: true, unique: true }, // already creates unique index
+  phone: { type: String, required: true, unique: true },
   phoneVerified: { type: Boolean, default: false },
   isAdmin: { type: Boolean, default: false },
+  resetToken: { type: String, default: null }, // Store reset token
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

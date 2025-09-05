@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken';
 export const register = async (req, res) => {
   const { name, password, phone, phoneVerified } = req.body;
   try {
-    // Check if user with phone already exists
     let user = await User.findOne({ phone });
     if (user) return res.status(400).json({ msg: 'User with this phone number already exists' });
 
@@ -72,16 +71,17 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ phone });
     if (!user) return res.status(400).json({ msg: 'User with this phone number does not exist' });
 
-    // Verify that the user's phone is already verified
     if (!user.phoneVerified) {
       return res.status(400).json({ msg: 'Phone number not verified. Please verify your phone first.' });
     }
 
     const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
+    user.resetToken = resetToken; // Store token in user document
+    await user.save();
 
     res.json({
       msg: 'OTP verified successfully. You can now reset your password.',
-      resetToken
+      resetToken,
     });
   } catch (err) {
     console.error('Forgot password error:', err);
@@ -94,10 +94,11 @@ export const resetPassword = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const user = await User.findOne({ _id: decoded.id, resetToken: token });
     if (!user) return res.status(400).json({ msg: 'Invalid or expired token' });
 
     user.password = password;
+    user.resetToken = null; // Invalidate token after use
     await user.save();
 
     res.json({ msg: 'Password reset successfully' });
@@ -106,6 +107,37 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ msg: 'Reset token has expired' });
     }
     res.status(500).json({ msg: 'Failed to reset password' });
+  }
+};
+
+export const validateResetToken = async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ _id: decoded.id, resetToken: token });
+    if (!user) return res.status(400).json({ isValid: false, msg: 'Invalid or expired token' });
+
+    res.json({ isValid: true });
+  } catch (err) {
+    res.status(400).json({ isValid: false, msg: err.name === 'TokenExpiredError' ? 'Reset token has expired' : 'Invalid token' });
+  }
+};
+
+export const clearResetToken = async (req, res) => {
+  const { token } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ _id: decoded.id, resetToken: token });
+    if (!user) return res.status(400).json({ msg: 'Invalid or expired token' });
+
+    user.resetToken = null;
+    await user.save();
+
+    res.json({ msg: 'Token cleared' });
+  } catch (err) {
+    res.status(400).json({ msg: 'Failed to clear token' });
   }
 };
 
@@ -126,15 +158,12 @@ export const updateUser = async (req, res) => {
     if (!user) return res.status(404).json({ msg: 'User not found' });
 
     if (phone && phone !== user.phone) {
-      // Check if new phone number is already in use
       const phoneExists = await User.findOne({ phone });
       if (phoneExists) return res.status(400).json({ msg: 'Phone number already in use' });
 
-      // Only reset phoneVerified if phone is actually changing
       user.phoneVerified = false;
     }
 
-    // Preserve phoneVerified status if it's provided in the request
     if (phoneVerified !== undefined) {
       user.phoneVerified = phoneVerified;
     }

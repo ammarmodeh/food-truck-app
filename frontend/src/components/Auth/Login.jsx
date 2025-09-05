@@ -10,39 +10,62 @@ const Login = () => {
   const [phoneInput, setPhoneInput] = useState('');
   const [formData, setFormData] = useState({ phone: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
+  const { isAuthenticated, loading, error, message } = useSelector((state) => state.auth);
+
+  // Clear messages after 60 seconds
+  useEffect(() => {
+    if (error || message) {
+      const timer = setTimeout(() => {
+        dispatch(clearErrors());
+      }, 60000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, message, dispatch]);
+
+  // Clear messages on navigation
+  useEffect(() => {
+    return () => {
+      dispatch(clearErrors());
+    };
+  }, [dispatch]);
 
   const onPhoneChange = (e) => {
     const value = e.target.value.replace(/[^\d]/g, ''); // Allow only digits
     setPhoneInput(value);
     setFormData({ ...formData, phone: countryCode + value });
-    if (error) dispatch(clearErrors());
+    dispatch(clearErrors()); // Clear messages on input change
   };
 
   const onCountryCodeChange = (e) => {
     const newCode = e.target.value;
     setCountryCode(newCode);
     setFormData({ ...formData, phone: phoneInput ? newCode + phoneInput : '' });
+    dispatch(clearErrors()); // Clear messages on input change
   };
 
   const onPasswordChange = (e) => {
     setFormData({ ...formData, password: e.target.value });
-    if (error) dispatch(clearErrors());
+    dispatch(clearErrors()); // Clear messages on input change
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     const phoneRegex = countryCode === '+1' ? /^\+1\d{10}$/ : /^\+962\d{9}$/;
     if (!phoneRegex.test(formData.phone)) {
       dispatch({
         type: 'AUTH_ERROR',
         payload: `Invalid phone number format. Use ${countryCode} followed by ${countryCode === '+1' ? '10-digit' : '9-digit'} number (e.g., ${countryCode === '+1' ? '+12345678901' : '+962123456789'}).`,
       });
+      setIsSubmitting(false);
       return;
     }
+    await new Promise((resolve) => setTimeout(resolve, 3000)); // 3-second delay for testing
     dispatch(login(formData));
+    setIsSubmitting(false);
   };
 
   useEffect(() => {
@@ -102,6 +125,15 @@ const Login = () => {
             >
               ✕
             </button>
+          </motion.div>
+        )}
+
+        {message && (
+          <motion.div
+            variants={itemVariants}
+            className="mb-6 p-4 bg-green-900/30 border border-green-700 text-green-300 rounded-xl"
+          >
+            <span>{message}</span>
           </motion.div>
         )}
 
@@ -175,9 +207,9 @@ const Login = () => {
                 boxShadow: '0 10px 25px -10px rgba(249, 115, 22, 0.5)',
               }}
               whileTap={{ scale: 0.98 }}
-              disabled={loading}
+              disabled={isSubmitting || loading}
             >
-              {loading ? (
+              {isSubmitting || loading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-5 h-5 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
                   Signing in...

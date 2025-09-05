@@ -14,21 +14,50 @@ const ForgotPassword = () => {
   const [showOtpField, setShowOtpField] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [recaptchaError, setRecaptchaError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error, message } = useSelector((state) => state.auth);
+
+  // Clear messages after 60 seconds
+  useEffect(() => {
+    if (error || message || recaptchaError) {
+      const timer = setTimeout(() => {
+        dispatch(clearErrors());
+        setRecaptchaError(null);
+      }, 60000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, message, recaptchaError, dispatch]);
+
+  // Clear messages on navigation
+  useEffect(() => {
+    return () => {
+      dispatch(clearErrors());
+      setRecaptchaError(null);
+    };
+  }, [dispatch]);
 
   const onPhoneChange = (e) => {
     const value = e.target.value.replace(/[^\d]/g, ''); // Allow only digits
     setPhoneInput(value);
     setPhone(value ? countryCode + value : '');
-    if (error) dispatch(clearErrors());
+    dispatch(clearErrors()); // Clear messages on input change
+    setRecaptchaError(null);
   };
 
   const onCountryCodeChange = (e) => {
     const newCode = e.target.value;
     setCountryCode(newCode);
     setPhone(phoneInput ? newCode + phoneInput : '');
+    dispatch(clearErrors()); // Clear messages on input change
+    setRecaptchaError(null);
+  };
+
+  const onOtpChange = (e) => {
+    setOtp(e.target.value);
+    dispatch(clearErrors()); // Clear messages on input change
+    setRecaptchaError(null);
   };
 
   const setupRecaptcha = () => {
@@ -37,14 +66,12 @@ const ForgotPassword = () => {
       dispatch({ type: 'FORGOT_PASSWORD_FAIL', payload: 'Firebase auth not initialized' });
       return null;
     }
-
     const container = document.getElementById('recaptcha-container');
     if (!container) {
       console.error('reCAPTCHA container not found');
       dispatch({ type: 'FORGOT_PASSWORD_FAIL', payload: 'reCAPTCHA container not found' });
       return null;
     }
-
     try {
       const verifier = new RecaptchaVerifier(
         auth,
@@ -52,7 +79,6 @@ const ForgotPassword = () => {
         {
           size: 'normal',
           callback: (response) => {
-            // console.log('reCAPTCHA verified:', response);
             setRecaptchaError(null);
           },
           'expired-callback': () => {
@@ -81,7 +107,6 @@ const ForgotPassword = () => {
         dispatch({ type: 'FORGOT_PASSWORD_FAIL', payload: 'Failed to initialize reCAPTCHA after multiple attempts' });
         return;
       }
-
       const verifier = setupRecaptcha();
       if (verifier) {
         window.recaptchaVerifier = verifier;
@@ -111,19 +136,18 @@ const ForgotPassword = () => {
 
   const requestOtp = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       if (!auth) {
         dispatch({ type: 'FORGOT_PASSWORD_FAIL', payload: 'Firebase auth not initialized' });
         return;
       }
-
       if (!window.recaptchaVerifier) {
         console.error('reCAPTCHA verifier not available');
         setRecaptchaError('reCAPTCHA not initialized. Please complete the reCAPTCHA.');
         dispatch({ type: 'FORGOT_PASSWORD_FAIL', payload: 'reCAPTCHA not initialized' });
         return;
       }
-
       const phoneRegex = countryCode === '+1' ? /^\+1\d{10}$/ : /^\+962\d{9}$/;
       if (!phoneRegex.test(phone)) {
         dispatch({
@@ -132,7 +156,7 @@ const ForgotPassword = () => {
         });
         return;
       }
-
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // 3-second delay for testing
       const result = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
       setConfirmationResult(result);
       setShowOtpField(true);
@@ -140,7 +164,6 @@ const ForgotPassword = () => {
     } catch (err) {
       console.error('Error in requestOtp:', err.code, err.message);
       dispatch({ type: 'FORGOT_PASSWORD_FAIL', payload: `Failed to send OTP: ${err.message}` });
-
       if (window.recaptchaWidgetId) {
         window.grecaptcha.reset(window.recaptchaWidgetId);
       } else if (window.recaptchaVerifier) {
@@ -148,17 +171,21 @@ const ForgotPassword = () => {
           window.grecaptcha.reset(widgetId);
         });
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     if (!confirmationResult) {
       dispatch({ type: 'FORGOT_PASSWORD_FAIL', payload: 'Please request OTP first' });
+      setIsSubmitting(false);
       return;
     }
-
     try {
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // 3-second delay for testing
       await confirmationResult.confirm(otp);
       const result = await dispatch(forgotPassword({ phone }));
       if (result && result.resetToken) {
@@ -167,6 +194,8 @@ const ForgotPassword = () => {
     } catch (err) {
       console.error('Error in onSubmit:', err.code, err.message);
       dispatch({ type: 'FORGOT_PASSWORD_FAIL', payload: `Invalid OTP: ${err.message}` });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -277,7 +306,7 @@ const ForgotPassword = () => {
               <input
                 type="text"
                 value={otp}
-                onChange={(e) => setOtp(e.target.value)}
+                onChange={onOtpChange}
                 placeholder="Enter OTP (e.g., 123456)"
                 className="w-full p-4 rounded-xl bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                 required
@@ -293,9 +322,9 @@ const ForgotPassword = () => {
               className="w-full bg-button-bg-primary text-white p-4 rounded-xl font-semibold shadow-lg"
               whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -10px rgba(249, 115, 22, 0.5)' }}
               whileTap={{ scale: 0.98 }}
-              disabled={loading}
+              disabled={isSubmitting || loading}
             >
-              {loading ? (
+              {isSubmitting || loading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-5 h-5 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
                   {showOtpField ? 'Verifying...' : 'Sending OTP...'}

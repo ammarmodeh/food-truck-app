@@ -1,44 +1,96 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { resetPassword, clearErrors } from '../../redux/actions/authActions';
+import { resetPassword, clearErrors, validateResetToken, clearResetToken } from '../../redux/actions/authActions';
 import { motion } from 'framer-motion';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 const ResetPassword = () => {
   const [formData, setFormData] = useState({ password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { token } = useParams();
-  const { loading, error, message } = useSelector((state) => state.auth);
+  const { isLoading, error, message, isTokenValid, tokenValidationLoading } = useSelector((state) => state.auth);
+
+  // Clear messages after 60 seconds
+  useEffect(() => {
+    if (error || message) {
+      const timer = setTimeout(() => {
+        dispatch(clearErrors());
+      }, 60000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, message, dispatch]);
+
+  // Clear messages on navigation
+  useEffect(() => {
+    return () => {
+      dispatch(clearErrors());
+    };
+  }, [dispatch]);
+
+  // Validate token on mount
+  useEffect(() => {
+    if (!token) {
+      dispatch(clearErrors());
+      navigate('/forgot-password', { replace: true });
+      return;
+    }
+    dispatch(validateResetToken(token));
+  }, [token, dispatch, navigate]);
+
+  // Redirect on invalid token or successful reset
+  useEffect(() => {
+    if (isTokenValid === false && !tokenValidationLoading) {
+      dispatch(clearErrors());
+      navigate('/forgot-password', { replace: true });
+    }
+    if (message) {
+      const timer = setTimeout(() => {
+        dispatch(clearErrors());
+        navigate('/login', { replace: true });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message, isTokenValid, tokenValidationLoading, dispatch, navigate]);
 
   const onChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error) dispatch(clearErrors());
+    dispatch(clearErrors());
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     if (formData.password !== formData.confirmPassword) {
       dispatch({ type: 'RESET_PASSWORD_FAIL', payload: 'Passwords do not match' });
+      setIsSubmitting(false);
       return;
     }
-    dispatch(resetPassword({ password: formData.password, token }));
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 3000)); // 3-second delay for testing
+      await dispatch(resetPassword({ password: formData.password, token }));
+      await dispatch(clearResetToken(token)); // Clear token after success
+    } catch (error) {
+      console.error('Reset password error:', error);
+    }
+    setIsSubmitting(false);
   };
 
-  useEffect(() => {
-    // Check if token is present
-    if (!token) {
-      navigate('/forgot-password');
-      return;
-    }
+  // Prevent rendering until token validation completes
+  if (tokenValidationLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-white">Validating token...</div>
+      </div>
+    );
+  }
 
-    if (message) {
-      const timer = setTimeout(() => navigate('/login'), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [message, navigate, token]);
+  if (!isTokenValid) {
+    return null; // Redirect handled by useEffect
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -139,9 +191,9 @@ const ResetPassword = () => {
               className="w-full bg-button-bg-primary text-white p-4 rounded-xl font-semibold shadow-lg"
               whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -10px rgba(249, 115, 22, 0.5)' }}
               whileTap={{ scale: 0.98 }}
-              disabled={loading}
+              disabled={isSubmitting || isLoading}
             >
-              {loading ? (
+              {isSubmitting || isLoading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-5 h-5 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
                   Resetting...
