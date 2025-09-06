@@ -9,7 +9,6 @@ import {
   PlusIcon,
   ArrowDownTrayIcon,
   CalendarIcon,
-  ArrowsPointingOutIcon
 } from '@heroicons/react/24/solid';
 import {
   Chart as ChartJS,
@@ -25,7 +24,181 @@ import {
 } from 'chart.js';
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import * as XLSX from 'xlsx';
-import OrdersTable from '../OrdersTable';
+
+// OrdersTable component
+const OrdersTable = ({ orders, filter, setFilter, currentPage, setCurrentPage, rowsPerPage, setRowsPerPage }) => {
+  // Filter orders based on input values
+  const filteredOrders = orders.filter((order) => {
+    const orderNumberMatch = order.orderNumber.toLowerCase().includes(filter.orderNumber.toLowerCase());
+    const customerMatch = order.user?.name?.toLowerCase().includes(filter.customer.toLowerCase()) || !filter.customer;
+    const phoneMatch = order.phone.toLowerCase().includes(filter.phone.toLowerCase());
+    const statusMatch = filter.status ? order.status === filter.status : true;
+    return orderNumberMatch && customerMatch && phoneMatch && statusMatch;
+  });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredOrders.length / rowsPerPage);
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
+  // Handle filter changes
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilter({ ...filter, [name]: value });
+    setCurrentPage(1); // Reset to first page on filter change
+  };
+
+  // Handle rows per page change
+  const handleRowsPerPageChange = (e) => {
+    setRowsPerPage(parseInt(e.target.value, 10));
+    setCurrentPage(1); // Reset to first page
+  };
+
+  return (
+    <motion.section className="mb-12" variants={{
+      hidden: { opacity: 0, y: 20 },
+      visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+    }}>
+      <div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-2xl font-bold text-white">Recent Orders</h3>
+          <div className="text-gray-300">Showing {paginatedOrders.length} of {filteredOrders.length} orders</div>
+        </div>
+
+        {/* Filter Inputs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div>
+            <label className="block text-gray-300 font-semibold mb-1">Order Number</label>
+            <input
+              name="orderNumber"
+              value={filter.orderNumber}
+              onChange={handleFilterChange}
+              placeholder="Search Order Number"
+              className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-300 font-semibold mb-1">Customer</label>
+            <input
+              name="customer"
+              value={filter.customer}
+              onChange={handleFilterChange}
+              placeholder="Search Customer"
+              className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-300 font-semibold mb-1">Phone</label>
+            <input
+              name="phone"
+              value={filter.phone}
+              onChange={handleFilterChange}
+              placeholder="Search Phone"
+              className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-300 font-semibold mb-1">Status</label>
+            <select
+              name="status"
+              value={filter.status}
+              onChange={handleFilterChange}
+              className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+            >
+              <option value="">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Preparing">Preparing</option>
+              <option value="Ready">Ready</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-gray-300">
+            <thead>
+              <tr className="bg-gray-700">
+                <th className="p-4">Order Number</th>
+                <th className="p-4">Customer</th>
+                <th className="p-4">Phone</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Total Amount</th>
+                <th className="p-4">Date</th>
+                <th className="p-4">Items</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="p-4 text-center">No orders match the filters</td>
+                </tr>
+              ) : (
+                paginatedOrders.map((order) => (
+                  <tr key={order._id} className="border-b border-gray-600 hover:bg-gray-700/50">
+                    <td className="p-4">{order.orderNumber}</td>
+                    <td className="p-4">{order.user?.name || 'N/A'}</td>
+                    <td className="p-4">{order.phone || 'N/A'}</td>
+                    <td className="p-4">{order.status}</td>
+                    <td className="p-4">
+                      ${typeof order.totalPrice === 'number' ? order.totalPrice.toFixed(2) : parseFloat(order.totalPrice || 0).toFixed(2)}
+                    </td>
+                    <td className="p-4">{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td className="p-4">
+                      {order.items ? order.items.map(item => `${item.menuItem?.name || 'Unknown'} (x${item.qty || 1})`).join(', ') : 'N/A'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between mt-6">
+          <div className="flex items-center space-x-2 mb-4 sm:mb-0">
+            <label className="text-gray-300">Rows per page:</label>
+            <select
+              value={rowsPerPage}
+              onChange={handleRowsPerPageChange}
+              className="bg-gray-700 text-white border border-gray-600 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="25">25</option>
+            </select>
+          </div>
+          <div className="flex items-center space-x-2">
+            <motion.button
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="bg-gray-700 text-white px-4 py-2 rounded-full disabled:opacity-50"
+              whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
+              whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
+            >
+              Previous
+            </motion.button>
+            <span className="text-gray-300">
+              Page {currentPage} of {totalPages}
+            </span>
+            <motion.button
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="bg-gray-700 text-white px-4 py-2 rounded-full disabled:opacity-50"
+              whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
+              whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
+            >
+              Next
+            </motion.button>
+          </div>
+        </div>
+      </div>
+    </motion.section>
+  );
+};
 
 // Register ChartJS components
 ChartJS.register(
@@ -59,10 +232,20 @@ const Dashboard = () => {
   const [timeFrame, setTimeFrame] = useState('day'); // 'day', 'week', 'month'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  // Added states for filtering and pagination
+  const [filter, setFilter] = useState({
+    orderNumber: '',
+    customer: '',
+    phone: '',
+    status: ''
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
   const handleMenuChange = (e) => setMenuForm({ ...menuForm, [e.target.name]: e.target.name === 'price' || e.target.name === 'prepTime' ? parseFloat(e.target.value) || 0 : e.target.value });
   const handleScheduleChange = (e) => setScheduleForm({ ...scheduleForm, [e.target.name]: e.target.value });
   const handleLocationChange = (e) => setLocationForm({ ...locationForm, [e.target.name]: e.target.name.includes('coordinates') ? { ...locationForm.coordinates, [e.target.name.split('.')[1]]: parseFloat(e.target.value) || 0 } : e.target.value });
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Function to group data by time frame
   const groupByTimeFrame = (data, timeFrame) => {
@@ -75,7 +258,6 @@ const Dashboard = () => {
       if (timeFrame === 'day') {
         key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       } else if (timeFrame === 'week') {
-        // Get week number
         const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
         const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
         const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
@@ -107,17 +289,17 @@ const Dashboard = () => {
     orders.forEach(order => {
       if (order.items && Array.isArray(order.items)) {
         order.items.forEach(item => {
-          if (item.name) {
-            if (!itemCounts[item.name]) {
-              itemCounts[item.name] = {
+          if (item.menuItem?.name) {
+            if (!itemCounts[item.menuItem.name]) {
+              itemCounts[item.menuItem.name] = {
                 count: 0,
                 revenue: 0,
-                name: item.name
+                name: item.menuItem.name
               };
             }
-            itemCounts[item.name].count += item.quantity || 1;
-            const itemPrice = typeof item.price === 'number' ? item.price : parseFloat(item.price || 0);
-            itemCounts[item.name].revenue += (item.quantity || 1) * itemPrice;
+            itemCounts[item.menuItem.name].count += item.qty || 1;
+            const itemPrice = typeof item.menuItem.price === 'number' ? item.menuItem.price : parseFloat(item.menuItem.price || 0);
+            itemCounts[item.menuItem.name].revenue += (item.qty || 1) * itemPrice;
           }
         });
       }
@@ -125,7 +307,7 @@ const Dashboard = () => {
 
     return Object.values(itemCounts)
       .sort((a, b) => b.count - a.count)
-      .slice(0, 5); // Top 5 items
+      .slice(0, 5);
   };
 
   useEffect(() => {
@@ -135,6 +317,7 @@ const Dashboard = () => {
         setError(null);
         const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_API}/api/orders`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          params: { populate: 'items.menuItem' } // Populate menuItem to get name and price
         });
 
         const deliveredOrders = data.filter(order => order.status === 'Delivered');
@@ -142,16 +325,12 @@ const Dashboard = () => {
 
         const revenue = deliveredOrders.reduce((acc, order) => acc + (typeof order.totalPrice === 'number' ? order.totalPrice : parseFloat(order.totalPrice || 0)), 0);
 
-        // Calculate average order value
         const avgOrderValue = deliveredOrders.length > 0 ? revenue / deliveredOrders.length : 0;
 
-        // Calculate order completion rate
         const completionRate = allOrders.length > 0 ? (deliveredOrders.length / allOrders.length) * 100 : 0;
 
-        // Get chart data based on selected time frame
         const chartData = groupByTimeFrame(deliveredOrders, timeFrame);
 
-        // Get top selling items
         const topItems = getTopSellingItems(deliveredOrders);
 
         setStats({
@@ -179,7 +358,6 @@ const Dashboard = () => {
   }, [user, notify, timeFrame]);
 
   useEffect(() => {
-    // Check if user is loaded and is admin
     if (user !== null) {
       if (!user.isAdmin) {
         navigate('/');
@@ -248,21 +426,29 @@ const Dashboard = () => {
     }
 
     try {
-      // Prepare data for export
-      const worksheetData = stats.allOrders.map(order => ({
-        'Order ID': order._id,
-        'Customer': order.customerName || 'N/A',
+      // Apply the same filters as the table
+      const filteredOrders = stats.allOrders.filter((order) => {
+        const orderNumberMatch = order.orderNumber.toLowerCase().includes(filter.orderNumber.toLowerCase());
+        const customerMatch = order.user?.name?.toLowerCase().includes(filter.customer.toLowerCase()) || !filter.customer;
+        const phoneMatch = order.phone.toLowerCase().includes(filter.phone.toLowerCase());
+        const statusMatch = filter.status ? order.status === filter.status : true;
+        return orderNumberMatch && customerMatch && phoneMatch && statusMatch;
+      });
+
+      const worksheetData = filteredOrders.map(order => ({
+        'Order Number': order.orderNumber,
+        'Customer': order.user?.name || 'N/A',
+        'Phone': order.phone || 'N/A',
         'Status': order.status,
         'Total Amount': typeof order.totalPrice === 'number' ? order.totalPrice : parseFloat(order.totalPrice || 0),
         'Date': new Date(order.createdAt).toLocaleDateString(),
-        'Items': order.items ? order.items.map(item => `${item.name} (x${item.quantity || 1})`).join(', ') : 'N/A'
+        'Items': order.items ? order.items.map(item => `${item.menuItem?.name || 'Unknown'} (x${item.qty || 1})`).join(', ') : 'N/A'
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(worksheetData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Orders');
 
-      // Generate Excel file
       XLSX.writeFile(workbook, `orders_export_${new Date().toISOString().split('T')[0]}.xlsx`);
       notify('Data exported successfully!', 'success');
     } catch (err) {
@@ -458,7 +644,6 @@ const Dashboard = () => {
           Admin Dashboard
         </motion.h2>
 
-
         <motion.section className="mb-12" variants={itemVariants}>
           <div className="flex flex-col md:flex-row items-center justify-between mb-10 sm:mb-6">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
@@ -520,7 +705,6 @@ const Dashboard = () => {
             </div>
           ) : (
             <motion.div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700" variants={itemVariants}>
-              {/* Stats Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
                 <div className="p-6 bg-gradient-to-r from-orange-900 to-orange-800 rounded-2xl shadow-md">
                   <p className="text-lg text-gray-300">Delivered Orders</p>
@@ -533,7 +717,6 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Charts Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <div className="bg-gray-700 p-4 rounded-2xl shadow-md">
                   <h4 className="text-lg font-semibold text-gray-200 mb-4 text-center">Revenue Trend</h4>
@@ -550,7 +733,6 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Top Items Chart */}
               {stats.topItems && stats.topItems.length > 0 && (
                 <div className="bg-gray-700 p-4 rounded-2xl shadow-md mt-6">
                   <h4 className="text-lg font-semibold text-gray-200 mb-4 text-center">Top Selling Items</h4>
@@ -584,7 +766,25 @@ const Dashboard = () => {
           )}
         </motion.section>
 
-        <OrdersTable orders={stats.allOrders || []} />
+        {/* Divider */}
+        <div className="my-24">
+          <div className="border-t border-gray-700"></div>
+        </div>
+
+        <OrdersTable
+          orders={stats.allOrders || []}
+          filter={filter}
+          setFilter={setFilter}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+          rowsPerPage={rowsPerPage}
+          setRowsPerPage={setRowsPerPage}
+        />
+
+        {/* Divider */}
+        <div className="my-24">
+          <div className="border-t border-gray-700"></div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <motion.section variants={itemVariants}>

@@ -7,21 +7,32 @@ import { logout } from '../redux/actions/authActions';
 // #1f4499
 
 const Navbar = () => {
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
-  // const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const [isAdminToolsOpen, setIsAdminToolsOpen] = useState(false);
   const [isWaking, setIsWaking] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const accountMenuRef = useRef(null);
   const adminToolsRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const notificationTimeoutRef = useRef(null);
+
+  // Track when authentication status is determined
+  useEffect(() => {
+    if (!loading) {
+      // Small delay to prevent flash of content
+      const timer = setTimeout(() => {
+        setAuthChecked(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   // Prevent background scrolling
   useEffect(() => {
@@ -58,11 +69,6 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobileMenuOpen]);
 
-  // Existing useEffects
-  // useEffect(() => {
-  //   document.documentElement.classList.toggle('dark', theme === 'dark');
-  // }, [theme]);
-
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsAdminToolsOpen(false);
@@ -94,7 +100,6 @@ const Navbar = () => {
         headers: { 'Content-Type': 'application/json' },
       });
       const data = await response.json();
-      // console.log('Server response:', data);
       if (response.ok) {
         setNotification({ type: 'success', message: 'Server is awake!' });
       } else {
@@ -153,15 +158,6 @@ const Navbar = () => {
     { name: 'Reviews Mgmt.', icon: '⭐', path: '/reviews-mgmt' },
   ];
 
-  const navItemVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: (index) => ({
-      opacity: 1,
-      y: 0,
-      transition: { delay: index * 0.1, duration: 0.5 },
-    }),
-  };
-
   const mobileMenuVariants = {
     hidden: { opacity: 0, height: 0 },
     visible: {
@@ -200,7 +196,7 @@ const Navbar = () => {
   const renderNavItem = (item, index, isMobile = false) => {
     const isActive = isActivePath(item.path);
     const baseClasses = isMobile
-      ? 'flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300'
+      ? 'flex items-center space-x-3 px-4 py-3 w-full transition-all duration-300'
       : 'flex items-center space-x-2 px-4 py-2 rounded-full transition-all duration-300';
 
     const activeClasses = isActive ? 'bg-white/30 text-white shadow-lg' : 'hover:bg-white/20';
@@ -216,7 +212,6 @@ const Navbar = () => {
         custom: index,
         initial: 'hidden',
         animate: 'visible',
-        variants: navItemVariants,
         whileHover: { scale: 1.05 },
         whileTap: { scale: 0.95 },
       };
@@ -230,7 +225,7 @@ const Navbar = () => {
         <span className={isMobile ? 'text-xl' : 'text-lg'}>{item.icon}</span>
         <Link
           to={item.path}
-          className="font-medium"
+          className="font-medium flex-1"
           onClick={() => isMobile && setIsMobileMenuOpen(false)}
         >
           {item.name}
@@ -248,13 +243,40 @@ const Navbar = () => {
   };
 
   const renderAuthButtons = (isMobile = false) => {
+    // Show loading state until auth status is confirmed
+    if (!authChecked) {
+      if (isMobile) {
+        return (
+          <div className="space-y-0">
+            <div className="flex items-center space-x-3 px-4 py-3 w-full">
+              <div className="h-6 w-20 bg-white/20 rounded-md animate-pulse"></div>
+            </div>
+            <div className="flex items-center space-x-3 px-4 py-3 w-full">
+              <div className="h-6 w-24 bg-white/20 rounded-md animate-pulse"></div>
+            </div>
+            <div className="flex items-center space-x-3 px-4 py-3 w-full">
+              <div className="h-6 w-28 bg-white/20 rounded-md animate-pulse"></div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex space-x-2 ml-4 items-center">
+          <div className="h-10 w-20 bg-white/20 rounded-full animate-pulse"></div>
+          <div className="h-10 w-24 bg-white/20 rounded-full animate-pulse"></div>
+          <div className="h-10 w-28 bg-white/20 rounded-full animate-pulse"></div>
+        </div>
+      );
+    }
+
     if (isAuthenticated) {
       return (
         <div className={isMobile ? 'space-y-0' : 'flex items-center space-x-2 ml-4'}>
           {isMobile ? (
             <>
               <motion.div
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/20 transition-all duration-300"
+                className="flex items-center space-x-3 px-4 py-3 w-full transition-all duration-300 hover:bg-white/20"
                 custom={mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + infoNavItems.length + (user?.isAdmin ? adminItems.length + adminToolsItems.length : 0)}
                 initial="hidden"
                 animate="visible"
@@ -263,14 +285,14 @@ const Navbar = () => {
                 <span className="text-xl">👤</span>
                 <Link
                   to="/profile"
-                  className="font-medium"
+                  className="font-medium flex-1"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Profile
                 </Link>
               </motion.div>
               <motion.div
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-red-500/20 transition-all duration-300 text-red-200 hover:text-red-100 w-full text-left"
+                className="flex items-center space-x-3 px-4 py-3 w-full transition-all duration-300 hover:bg-red-500/20 text-red-200 hover:text-red-100"
                 custom={mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + infoNavItems.length + (user?.isAdmin ? adminItems.length + adminToolsItems.length : 0) + 1}
                 initial="hidden"
                 animate="visible"
@@ -282,13 +304,13 @@ const Navbar = () => {
                     handleLogout();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="font-medium text-left w-full"
+                  className="font-medium text-left flex-1"
                 >
                   Logout
                 </button>
               </motion.div>
               <motion.div
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 w-full text-left ${isWaking ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-500/20 text-green-200 hover:text-green-100'}`}
+                className={`flex items-center space-x-3 px-4 py-3 w-full transition-all duration-300 ${isWaking ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-500/20 text-green-200 hover:text-green-100'}`}
                 custom={mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + infoNavItems.length + (user?.isAdmin ? adminItems.length + adminToolsItems.length : 0) + 2}
                 initial="hidden"
                 animate="visible"
@@ -301,7 +323,7 @@ const Navbar = () => {
                     setIsMobileMenuOpen(false);
                   }}
                   disabled={isWaking}
-                  className="font-medium text-left w-full"
+                  className="font-medium text-left flex-1"
                 >
                   {isWaking ? 'Waking...' : 'Wake Server'}
                 </button>
@@ -372,7 +394,7 @@ const Navbar = () => {
     }
 
     const buttonClass = isMobile
-      ? 'flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300'
+      ? 'flex items-center space-x-3 px-4 py-3 w-full transition-all duration-300'
       : 'px-6 py-2 rounded-full font-semibold transition-all duration-300';
 
     const loginButton = isMobile ? (
@@ -386,7 +408,7 @@ const Navbar = () => {
         <span className="text-xl">🔑</span>
         <Link
           to="/login"
-          className="font-medium"
+          className="font-medium flex-1"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           Login
@@ -413,7 +435,7 @@ const Navbar = () => {
         <span className="text-xl">📝</span>
         <Link
           to="/register"
-          className="font-medium"
+          className="font-medium flex-1"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           Register
@@ -431,7 +453,7 @@ const Navbar = () => {
 
     const wakeServerButton = isMobile ? (
       <motion.div
-        className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 w-full text-left ${isWaking ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-500/20 text-green-200 hover:text-green-100'}`}
+        className={`flex items-center space-x-3 px-4 py-3 w-full transition-all duration-300 ${isWaking ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-500/20 text-green-200 hover:text-green-100'}`}
         custom={mainNavItems.length + infoNavItems.length + 2}
         initial="hidden"
         animate="visible"
@@ -444,7 +466,7 @@ const Navbar = () => {
             setIsMobileMenuOpen(false);
           }}
           disabled={isWaking}
-          className="font-medium text-left w-full"
+          className="font-medium text-left flex-1"
         >
           {isWaking ? 'Waking...' : 'Wake Server'}
         </button>
@@ -485,7 +507,7 @@ const Navbar = () => {
           {adminItems.map((item, index) => (
             <motion.div
               key={item.name}
-              className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/20 transition-all duration-300"
+              className="flex items-center space-x-3 px-4 py-3 w-full transition-all duration-300 hover:bg-white/20"
               custom={mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + infoNavItems.length + index}
               initial="hidden"
               animate="visible"
@@ -494,7 +516,7 @@ const Navbar = () => {
               <span className="text-xl">{item.icon}</span>
               <Link
                 to={item.path}
-                className="font-medium"
+                className="font-medium flex-1"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.name}
@@ -505,7 +527,7 @@ const Navbar = () => {
           {adminToolsItems.map((item, index) => (
             <motion.div
               key={item.name}
-              className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/20 transition-all duration-300 ml-4"
+              className="flex items-center space-x-3 px-4 py-3 w-full transition-all duration-300 hover:bg-white/20 ml-4"
               custom={mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + infoNavItems.length + adminItems.length + index}
               initial="hidden"
               animate="visible"
@@ -514,7 +536,7 @@ const Navbar = () => {
               <span className="text-xl">{item.icon}</span>
               <Link
                 to={item.path}
-                className="font-medium"
+                className="font-medium flex-1"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.name}
@@ -592,9 +614,6 @@ const Navbar = () => {
   return (
     <motion.nav
       className="sticky top-0 z-40 bg-gradient-to-r from-orange-600/10 via-orange-500/10 to-red-500/10 text-white shadow-3xl backdrop-blur-xl h-[72px]"
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, type: 'spring', stiffness: 100 }}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-[#1f4499] via-gray-900 to-black"></div>
       <div className="relative container mx-auto sm:px-6 h-full">
@@ -605,7 +624,7 @@ const Navbar = () => {
             whileTap={{ scale: 0.95 }}
           >
             <Link to="/" className="block">
-              <img src="/LogoByeByeEtiquette.svg" alt="Logo" className="w-25" />
+              <img src="/LogoByeByeEtiquette.svg" alt="Logo" className="w-20" />
             </Link>
           </motion.div>
 
@@ -617,7 +636,7 @@ const Navbar = () => {
                 renderNavItem(item, mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + index)
               )}
             </div>
-            {renderAdminSection()}
+            {authChecked && renderAdminSection()}
             {renderAuthButtons()}
           </div>
 
@@ -672,7 +691,7 @@ const Navbar = () => {
                     renderNavItem(item, mainNavItems.length + (isAuthenticated ? userNavItems.length : 0) + index, true)
                   )}
                 </div>
-                {renderAdminSection(true)}
+                {authChecked && renderAdminSection(true)}
                 <div className="pt-2 border-t border-white/20 mt-2">
                   {renderAuthButtons(true)}
                 </div>

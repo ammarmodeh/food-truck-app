@@ -505,8 +505,6 @@ const Testimonials = ({ isReady, isPublic }) => {
             >
               <motion.div
                 className="text-9xl mb-8 filter drop-shadow-2xl"
-                animate={{ rotate: [0, -10, 10, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}
               >
                 🔮
               </motion.div>

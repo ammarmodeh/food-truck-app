@@ -57,14 +57,14 @@ const Home = () => {
 
   const heroRef = useRef(null);
   const containerRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"],
-  });
+  // const { scrollYProgress } = useScroll({
+  //   target: containerRef,
+  //   offset: ["start start", "end start"],
+  // });
 
-  const heroY = useTransform(scrollYProgress, [0, 1], [0, -300]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 1.2]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  // const heroY = useTransform(scrollYProgress, [0, 1], [0, -300]);
+  // const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 1.2]);
+  // const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   const [isReady, setIsReady] = useState(false);
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -197,6 +197,12 @@ const Home = () => {
     setImage(fallbackImage);
   };
 
+  const getGridClasses = (itemCount) => {
+    if (itemCount === 1) return 'grid grid-cols-1 max-w-7xl mx-auto';
+    if (itemCount === 2) return 'grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto';
+    return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto';
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -269,8 +275,6 @@ const Home = () => {
       <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white text-center py-20 min-h-screen">
         <motion.div
           className="text-9xl mb-8 filter drop-shadow-2xl"
-        // animate={{ rotate: [0, -10, 10, 0] }}
-        // transition={{ duration: 2, repeat: Infinity }}
         >
           🕒
         </motion.div>
@@ -292,7 +296,7 @@ const Home = () => {
         <motion.section
           ref={heroRef}
           className="relative flex items-center justify-center min-h-[calc(100vh-72px)] overflow-hidden"
-          style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
+        // style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
         >
           {/* Background with enhanced parallax effect */}
           <div
@@ -457,8 +461,6 @@ const Home = () => {
                   >
                     <motion.div
                       className="text-9xl mb-8 filter drop-shadow-2xl"
-                    // animate={{ rotate: [0, -10, 10, 0] }}
-                    // transition={{ duration: 2, repeat: Infinity }}
                     >
                       🔮
                     </motion.div>
@@ -596,7 +598,7 @@ const Home = () => {
                   </motion.div>
                 ) : (
                   <motion.div
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto"
+                    className={getGridClasses(upcomingSchedule.length)}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ staggerChildren: 0.2 }}
@@ -604,15 +606,13 @@ const Home = () => {
                     {upcomingSchedule.map((schedule, index) => (
                       <motion.div
                         key={schedule._id}
-                        className="relative card-gradient-bg backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 group"
+                        className="relative card-gradient-bg backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 group w-full"
                         viewport={{ once: true, margin: "-100px" }}
                       >
                         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-red-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <div className="relative z-10">
                           <motion.div
                             className="text-6xl mb-6 filter drop-shadow-lg"
-                          // animate={{ rotate: [0, 5, -5, 0] }}
-                          // transition={{ duration: 3, repeat: Infinity, delay: index * 0.5 }}
                           >
                             📍
                           </motion.div>
@@ -753,7 +753,6 @@ const Home = () => {
           <div className="absolute inset-0">
             <motion.div
               className="absolute inset-0 opacity-20"
-            // transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
             />
           </div>
           <div className="relative z-10 text-center text-white px-8 max-w-6xl mx-auto">
