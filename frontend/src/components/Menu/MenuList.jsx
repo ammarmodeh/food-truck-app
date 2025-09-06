@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom'; // Import Link for navigation
 import axios from 'axios';
 import { addToCart, adjustCartQuantity, removeFromCart } from '../../redux/actions/cartActions';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MagnifyingGlassIcon, FunnelIcon, PlusIcon, MinusIcon, TrashIcon } from '@heroicons/react/24/solid';
+import { MagnifyingGlassIcon, FunnelIcon, PlusIcon, MinusIcon, TrashIcon, ShoppingCartIcon } from '@heroicons/react/24/solid';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 // Unchanged functions
@@ -154,9 +155,16 @@ const MenuList = () => {
     exit: { opacity: 0, scale: 0.8, transition: { duration: 0.2 } }
   };
 
+  // Floating button animation variants
+  const fabVariants = {
+    hidden: { opacity: 0, scale: 0, y: 20 },
+    visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
+    exit: { opacity: 0, scale: 0, y: 20, transition: { duration: 0.2 } }
+  };
+
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"
+      className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -468,6 +476,31 @@ const MenuList = () => {
           </>
         )}
       </div>
+      {/* Floating Cart Button */}
+      <AnimatePresence>
+        {cartItems.length > 0 && user && (
+          <motion.div
+            className="fixed bottom-6 right-6 z-50"
+            variants={fabVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <Link to="/cart">
+              <motion.button
+                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <ShoppingCartIcon className="h-6 w-6" />
+                <span className="font-semibold">
+                  View Cart ({cartItems.reduce((acc, item) => acc + item.qty, 0)})
+                </span>
+              </motion.button>
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

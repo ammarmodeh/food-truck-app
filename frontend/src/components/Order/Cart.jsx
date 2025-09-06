@@ -217,6 +217,11 @@ const Cart = () => {
               </AnimatePresence>
             </div>
 
+            {/* Divider */}
+            <div className="my-12">
+              <div className="border-t border-gray-700"></div>
+            </div>
+
             {/* Order Summary */}
             <motion.div
               className="card-gradient-bg p-6 rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"

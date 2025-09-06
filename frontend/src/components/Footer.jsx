@@ -5,12 +5,13 @@ const Footer = () => {
     <footer className="bg-gradient-to-r from-[#1f4499] via-gray-900 to-black text-white">
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+
           {/* Logo & Description */}
           <div className="md:col-span-2">
             <div className="flex items-center space-x-4 mb-6">
               <div className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-wide border-1 border-white/70 overflow-hidden">
                 <Link to="/" className="block">
-                  <img src="./public/LogoByeByeEtiquette.svg" alt="Bye Bye Etiquette Logo" className="w-24" />
+                  <img src="/LogoByeByeEtiquette.svg" alt="Bye Bye Etiquette Logo" className="w-24" />
                 </Link>
               </div>
               <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent">
