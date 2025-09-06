@@ -26,6 +26,7 @@ const LocationManagement = () => {
     coordinates: { lat: '', lng: '' }
   });
   const [formErrors, setFormErrors] = useState({});
+  const [locationUpdated, setLocationUpdated] = useState(false);
 
   // Fetch single location
   useEffect(() => {
@@ -47,7 +48,7 @@ const LocationManagement = () => {
       setLoading(false);
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, locationUpdated]);
 
   // Fetch schedules for import
   useEffect(() => {
@@ -108,19 +109,33 @@ const LocationManagement = () => {
         setLocation(data);
         notify('Location updated successfully!', 'success');
         setEditLocation(null);
-      } else if (!location) {
+      } else {
         const { data } = await axios.post(
           `${import.meta.env.VITE_BACKEND_API}/api/locations`,
           locationForm,
           { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
         );
-        setLocation(data);
+        setLocation(data); // This updates the state with the new location
         notify('Location added successfully!', 'success');
       }
       setLocationForm({ date: '', location: '', state: '', startTime: '', endTime: '', coordinates: { lat: '', lng: '' } });
       setFormErrors({});
     } catch (err) {
-      notify(editLocation ? 'Failed to update location' : 'Failed to add location', 'error');
+      const errorMsg = err.response?.data?.msg || err.response?.data?.error || 'Unknown error';
+
+      if (errorMsg.includes('already exists')) {
+        // If a location already exists, fetch the current location to update UI
+        try {
+          const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_API}/api/locations/current`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          });
+          setLocation(data); // Update with the existing location
+        } catch (fetchErr) {
+          console.error('Failed to fetch current location:', fetchErr);
+        }
+      }
+
+      notify(editLocation ? 'Failed to update location' : errorMsg, 'error');
     }
   };
 
@@ -362,10 +377,10 @@ const LocationManagement = () => {
               <div className="flex space-x-4 mt-6">
                 <motion.button
                   type="submit"
-                  className={`flex-1 bg-button-bg-primary text-white py-3 rounded-full font-semibold ${location && !editLocation ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  whileHover={{ scale: location && !editLocation ? 1 : 1.05 }}
-                  whileTap={{ scale: location && !editLocation ? 1 : 0.95 }}
-                  disabled={location && !editLocation}
+                  className={`flex-1 bg-button-bg-primary text-white py-3 rounded-full font-semibold ${editLocation ? '' : location ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  whileHover={{ scale: editLocation ? 1.05 : location ? 1 : 1.05 }}
+                  whileTap={{ scale: editLocation ? 0.95 : location ? 1 : 0.95 }}
+                  disabled={!editLocation && location} // Only disable when not editing AND location exists
                 >
                   {editLocation ? 'Update Location' : 'Set Location'}
                 </motion.button>

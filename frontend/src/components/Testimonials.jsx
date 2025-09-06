@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux';
 
 const Testimonials = ({ isReady, isPublic }) => {
@@ -24,12 +23,6 @@ const Testimonials = ({ isReady, isPublic }) => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Starting fetch for testimonials:', {
-        endpoint: isPublic ? 'public' : 'authenticated',
-        isReady,
-        isAuthenticated,
-        authLoading
-      });
 
       let endpoint = `${import.meta.env.VITE_BACKEND_API}/api/testimonials/public`;
       let headers = {
@@ -40,8 +33,6 @@ const Testimonials = ({ isReady, isPublic }) => {
         endpoint = `${import.meta.env.VITE_BACKEND_API}/api/testimonials`;
         headers['Authorization'] = `Bearer ${token}`;
       }
-
-      console.log('Fetching from:', endpoint, 'with headers:', headers);
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => {
@@ -75,7 +66,6 @@ const Testimonials = ({ isReady, isPublic }) => {
       }
 
       const data = await response.json();
-      console.log('Raw API response:', data);
 
       if (!data.reviews || !Array.isArray(data.reviews)) {
         throw new Error('Invalid response format: reviews is not an array');
@@ -92,26 +82,18 @@ const Testimonials = ({ isReady, isPublic }) => {
         createdAt: item.createdAt || new Date().toISOString(),
       }));
 
-      console.log('Formatted testimonials:', formattedTestimonials);
       setTestimonials(formattedTestimonials);
       setLoading(false);
-      console.log('State updated:', { testimonialsLength: formattedTestimonials.length, loading: false });
     } catch (err) {
       console.error('Fetch testimonials error:', err.message);
       setError(err.message || 'Unable to load testimonials. Please try again.');
       setLoading(false);
-      console.log('State updated:', { testimonialsLength: testimonials.length, loading: false, error: err.message });
     }
   }, [isPublic, isAuthenticated, token, authLoading]);
 
   // Optimize fetch trigger to prevent unnecessary re-renders
   useEffect(() => {
     if (!isReady || isAuthenticated === null || authLoading) {
-      console.warn('Waiting for auth state or component readiness:', {
-        isReady,
-        isAuthenticated,
-        authLoading
-      });
       setLoading(false);
       return;
     }
@@ -179,8 +161,6 @@ const Testimonials = ({ isReady, isPublic }) => {
 
       const method = editingTestimonialId ? 'PUT' : 'POST';
 
-      console.log('Submitting testimonial:', { url, method, payload, headers });
-
       let response = await fetch(url, {
         method,
         headers,
@@ -232,7 +212,6 @@ const Testimonials = ({ isReady, isPublic }) => {
       setEditingTestimonialId(null);
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 3000);
-      console.log('Testimonial submitted successfully:', data);
     } catch (err) {
       setFormError(err.message);
       console.error('Submit testimonial error:', err.message);
@@ -249,7 +228,6 @@ const Testimonials = ({ isReady, isPublic }) => {
       avatar: testimonial.avatar,
     });
     setEditingTestimonialId(testimonial._id);
-    console.log('Editing testimonial:', testimonial);
   };
 
   // Handle delete testimonial
@@ -259,8 +237,6 @@ const Testimonials = ({ isReady, isPublic }) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       };
-
-      console.log('Deleting testimonial:', testimonialId);
 
       const response = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/testimonials/${testimonialId}`, {
         method: 'DELETE',
@@ -281,23 +257,10 @@ const Testimonials = ({ isReady, isPublic }) => {
       await fetchTestimonials();
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 3000);
-      console.log('Testimonial deleted successfully:', data);
     } catch (err) {
       setFormError(err.message);
       console.error('Delete testimonial error:', err.message);
     }
-  };
-
-  const itemVariants = {
-    hidden: { y: 100, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 1,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      },
-    },
   };
 
   const LoadingSkeleton = ({ className, children }) => (
@@ -307,39 +270,18 @@ const Testimonials = ({ isReady, isPublic }) => {
   );
 
   return (
-    <motion.section
-      className="py-32 relative"
-      variants={itemVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
-    >
+    <section className="py-32 relative">
       <div className="container mx-auto px-6">
-        <motion.div className="text-center mb-20" variants={itemVariants}>
-          <motion.h2
-            className="text-5xl sm:text-6xl md:text-7xl font-black mb-8 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
-            initial={{ scale: 0.5 }}
-            whileInView={{ scale: 1 }}
-            transition={{ duration: 0.8, type: "spring" }}
-          >
+        <div className="text-center mb-20">
+          <h2 className="text-5xl sm:text-6xl md:text-7xl font-black mb-8 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             TESTIMONIALS
-          </motion.h2>
-          <motion.div
-            className="w-40 h-1 bg-gradient-to-r from-cyan-400 to-pink-500 mx-auto rounded-full"
-            initial={{ width: 0 }}
-            whileInView={{ width: "10rem" }}
-            transition={{ duration: 1.2, delay: 0.5 }}
-          />
-        </motion.div>
+          </h2>
+          <div className="w-40 h-1 bg-gradient-to-r from-cyan-400 to-pink-500 mx-auto rounded-full" />
+        </div>
 
         {/* Review Form - Show only for authenticated users */}
         {isAuthenticated === true && (
-          <motion.div
-            className="max-w-2xl mx-auto mb-20"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="max-w-2xl mx-auto mb-20">
             <div className="relative card-gradient-bg backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-pink-500/5" />
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500" />
@@ -348,14 +290,9 @@ const Testimonials = ({ isReady, isPublic }) => {
                   {editingTestimonialId ? 'Edit Your Review' : 'Share Your Experience'}
                 </h3>
                 {formError && (
-                  <motion.div
-                    className="text-red-400 mb-4 text-center bg-red-900/50 p-4 rounded-xl border border-red-400/50"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
+                  <div className="text-red-400 mb-4 text-center bg-red-900/50 p-4 rounded-xl border border-red-400/50">
                     {formError}
-                  </motion.div>
+                  </div>
                 )}
                 <div className="space-y-6">
                   <input
@@ -386,38 +323,31 @@ const Testimonials = ({ isReady, isPublic }) => {
                   />
                   <div className="flex justify-center space-x-2">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <motion.button
+                      <button
                         key={star}
                         type="button"
                         onClick={() => handleRatingChange(star)}
                         className={`text-2xl ${formData.rating >= star ? 'text-yellow-400' : 'text-white/30'}`}
-                        whileHover={{ scale: 1.2 }}
-                        whileTap={{ scale: 0.9 }}
                         aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
                       >
                         ⭐
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                   <div className="flex justify-center items-center gap-2">
-                    <motion.button
+                    <button
                       onClick={handleSubmit}
                       className="group relative text-sm sm:text-lg px-4 sm:px-6 py-3 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white rounded-full font-bold shadow-2xl overflow-hidden max-w-xs"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                       aria-label={editingTestimonialId ? 'Update Review' : 'Submit Review'}
                     >
                       <span className="relative z-10 flex items-center justify-center space-x-2">
                         <span>{editingTestimonialId ? 'Update Review' : 'Submit Review'}</span>
                         <span>🚀</span>
                       </span>
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100"
-                        transition={{ duration: 0.3 }}
-                      />
-                    </motion.button>
+                      <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100" />
+                    </button>
                     {editingTestimonialId && (
-                      <motion.button
+                      <button
                         onClick={() => {
                           setFormData({
                             text: '',
@@ -429,213 +359,129 @@ const Testimonials = ({ isReady, isPublic }) => {
                           setEditingTestimonialId(null);
                         }}
                         className="group relative px-4 sm:px-6 py-3 text-sm sm:text-lg bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 text-white rounded-full font-bold shadow-2xl overflow-hidden"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
                         aria-label="Cancel editing review"
                       >
                         <span className="relative z-10">Cancel</span>
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-gray-500 via-gray-400 to-gray-500 opacity-0 group-hover:opacity-100"
-                          transition={{ duration: 0.3 }}
-                        />
-                      </motion.button>
+                        <div className="absolute inset-0 bg-gradient-to-r from-gray-500 via-gray-400 to-gray-500 opacity-0 group-hover:opacity-100" />
+                      </button>
                     )}
                   </div>
                 </div>
               </div>
             </div>
             {submitSuccess && (
-              <motion.p
-                className="text-green-400 mt-4 text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+              <p className="text-green-400 mt-4 text-center">
                 {editingTestimonialId ? 'Review updated successfully!' : 'Thank you for your review! It has been submitted successfully.'}
-              </motion.p>
+              </p>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* Testimonials Display */}
-        <AnimatePresence mode="wait">
-          {(!isReady || authLoading) ? (
-            <motion.div
-              key="auth-loading"
-              className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.3 } }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="text-9xl mb-8 filter drop-shadow-2xl">🕒</div>
-              <h3 className="text-4xl font-bold text-white mb-6">Waiting for Authentication</h3>
-              <p className="text-white/60 text-xl">Please wait while we verify your session...</p>
-            </motion.div>
-          ) : loading ? (
-            <motion.div
-              key="testimonials-loading"
-              className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.3 } }}
-              transition={{ duration: 0.6 }}
-            >
-              <LoadingSkeleton className="group">
-                <div className="relative bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-2xl border border-white/10 p-12 rounded-3xl shadow-2xl text-center overflow-hidden">
-                  <div className="h-20 bg-gradient-to-r from-slate-600/50 to-slate-500/50 rounded-full mb-8"></div>
-                  <div className="h-8 bg-slate-700/50 rounded-full mb-6"></div>
-                  <div className="h-6 bg-slate-600/50 rounded-full w-3/4 mx-auto"></div>
-                </div>
-              </LoadingSkeleton>
-              <p className="text-white/60 mt-4">Loading testimonials...</p>
-            </motion.div>
-          ) : error ? (
-            <motion.div
-              key="testimonials-error"
-              className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.3 } }}
-              transition={{ duration: 0.6 }}
-            >
-              <motion.div
-                className="text-9xl mb-8 filter drop-shadow-2xl"
-              >
-                🔮
-              </motion.div>
-              <h3 className="text-4xl font-bold text-white mb-6">Unable to Load Testimonials</h3>
-              <p className="text-white/60 mb-12 text-xl">{error}</p>
-              <motion.button
-                className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={fetchTestimonials}
-                aria-label="Retry loading testimonials"
-              >
-                Try Again
-              </motion.button>
-            </motion.div>
-          ) : testimonials.length === 0 ? (
-            <motion.div
-              key="testimonials-empty"
-              className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.3 } }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="text-9xl mb-8 filter drop-shadow-2xl">🎭</div>
-              <h3 className="text-4xl font-bold text-white mb-6">No Testimonials Yet</h3>
-              <p className="text-white/60 text-xl">Be the first to share your experience!</p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="testimonials-success"
-              className="max-w-5xl mx-auto mb-20"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.3 } }}
-              transition={{ duration: 0.8 }}
-            >
-              <motion.div
-                key={currentTestimonial}
-                className="relative card-gradient-bg backdrop-blur-2xl border border-white/10 p-12 rounded-3xl shadow-2xl text-center overflow-hidden"
-                initial={{ opacity: 0, y: 100, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -100, scale: 0.8 }}
-                transition={{ duration: 0.6 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-purple-500/5 to-cyan-500/5" />
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"></div>
-                <motion.div
-                  className="text-8xl mb-8 filter drop-shadow-lg"
-                >
-                  {testimonials[currentTestimonial].avatar}
-                </motion.div>
-                <motion.p
-                  className="text-2xl md:text-3xl text-white mb-8 leading-relaxed italic font-light"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  "{testimonials[currentTestimonial].text}"
-                </motion.p>
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="flex text-yellow-400 text-2xl">
-                    {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                      <motion.span
-                        key={i}
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.3 + i * 0.1, duration: 0.3 }}
-                      >
-                        ⭐
-                      </motion.span>
-                    ))}
-                  </div>
-                  <div className="text-center">
-                    <h4 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                      {testimonials[currentTestimonial].author}
-                    </h4>
-                    <p className="text-white/60 text-lg">{testimonials[currentTestimonial].role}</p>
-                  </div>
-                  {!isPublic &&
-                    isAuthenticated &&
-                    user?._id &&
-                    testimonials[currentTestimonial]?.userId &&
-                    testimonials[currentTestimonial].userId.toString() === user._id.toString() && (
-                      <div className="flex justify-center space-x-4 mt-4">
-                        <motion.button
-                          onClick={() => handleEdit(testimonials[currentTestimonial])}
-                          className="group relative px-6 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-bold shadow-2xl overflow-hidden"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          aria-label="Edit testimonial"
-                        >
-                          <span className="relative z-10">Edit</span>
-                          <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100"
-                            transition={{ duration: 0.3 }}
-                          />
-                        </motion.button>
-                        <motion.button
-                          onClick={() => handleDelete(testimonials[currentTestimonial]._id)}
-                          className="group relative px-6 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full font-bold shadow-2xl overflow-hidden"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          aria-label="Delete testimonial"
-                        >
-                          <span className="relative z-10">Delete</span>
-                          <motion.div
-                            className="absolute inset-0 bg-gradient-to-r from-pink-500 to-red-500 opacity-0 group-hover:opacity-100"
-                            transition={{ duration: 0.3 }}
-                          />
-                        </motion.button>
-                      </div>
-                    )}
-                </div>
-              </motion.div>
-              <div className="flex justify-center space-x-4 mt-12">
-                {testimonials.map((_, index) => (
-                  <motion.button
-                    key={index}
-                    className={`w-4 h-4 rounded-full transition-all duration-300 ${index === currentTestimonial
-                      ? 'bg-gradient-to-r from-cyan-400 to-pink-500 scale-125 shadow-lg'
-                      : 'bg-white/30 hover:bg-white/50'
-                      }`}
-                    onClick={() => setCurrentTestimonial(index)}
-                    whileHover={{ scale: 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    aria-label={`View testimonial ${index + 1}`}
-                  />
-                ))}
+        {(!isReady || authLoading) ? (
+          <div className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700">
+            <div className="text-9xl mb-8 filter drop-shadow-2xl">🕒</div>
+            <h3 className="text-4xl font-bold text-white mb-6">Waiting for Authentication</h3>
+            <p className="text-white/60 text-xl">Please wait while we verify your session...</p>
+          </div>
+        ) : loading ? (
+          <div className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700">
+            <LoadingSkeleton className="group">
+              <div className="relative bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-2xl border border-white/10 p-12 rounded-3xl shadow-2xl text-center overflow-hidden">
+                <div className="h-20 bg-gradient-to-r from-slate-600/50 to-slate-500/50 rounded-full mb-8"></div>
+                <div className="h-8 bg-slate-700/50 rounded-full mb-6"></div>
+                <div className="h-6 bg-slate-600/50 rounded-full w-3/4 mx-auto"></div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </LoadingSkeleton>
+            <p className="text-white/60 mt-4">Loading testimonials...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700">
+            <div className="text-9xl mb-8 filter drop-shadow-2xl">🔮</div>
+            <h3 className="text-4xl font-bold text-white mb-6">Unable to Load Testimonials</h3>
+            <p className="text-white/60 mb-12 text-xl">{error}</p>
+            <button
+              className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl"
+              onClick={fetchTestimonials}
+              aria-label="Retry loading testimonials"
+            >
+              Try Again
+            </button>
+          </div>
+        ) : testimonials.length === 0 ? (
+          <div className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700">
+            <div className="text-9xl mb-8 filter drop-shadow-2xl">🎭</div>
+            <h3 className="text-4xl font-bold text-white mb-6">No Testimonials Yet</h3>
+            <p className="text-white/60 text-xl">Be the first to share your experience!</p>
+          </div>
+        ) : (
+          <div className="max-w-5xl mx-auto mb-20">
+            <div
+              className="relative card-gradient-bg backdrop-blur-2xl border border-white/10 p-12 rounded-3xl shadow-2xl text-center overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-purple-500/5 to-cyan-500/5" />
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"></div>
+              <div className="text-8xl mb-8 filter drop-shadow-lg">
+                {testimonials[currentTestimonial].avatar}
+              </div>
+              <p className="text-2xl md:text-3xl text-white mb-8 leading-relaxed italic font-light">
+                "{testimonials[currentTestimonial].text}"
+              </p>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="flex text-yellow-400 text-2xl">
+                  {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
+                    <span key={i}>⭐</span>
+                  ))}
+                </div>
+                <div className="text-center">
+                  <h4 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                    {testimonials[currentTestimonial].author}
+                  </h4>
+                  <p className="text-white/60 text-lg">{testimonials[currentTestimonial].role}</p>
+                </div>
+                {!isPublic &&
+                  isAuthenticated &&
+                  user?._id &&
+                  testimonials[currentTestimonial]?.userId &&
+                  testimonials[currentTestimonial].userId.toString() === user._id.toString() && (
+                    <div className="flex justify-center space-x-4 mt-4">
+                      <button
+                        onClick={() => handleEdit(testimonials[currentTestimonial])}
+                        className="group relative px-6 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-bold shadow-2xl overflow-hidden"
+                        aria-label="Edit testimonial"
+                      >
+                        <span className="relative z-10">Edit</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(testimonials[currentTestimonial]._id)}
+                        className="group relative px-6 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full font-bold shadow-2xl overflow-hidden"
+                        aria-label="Delete testimonial"
+                      >
+                        <span className="relative z-10">Delete</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-red-500 opacity-0 group-hover:opacity-100" />
+                      </button>
+                    </div>
+                  )}
+              </div>
+            </div>
+            <div className="flex justify-center space-x-4 mt-12">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-4 h-4 rounded-full transition-all duration-300 ${index === currentTestimonial
+                    ? 'bg-gradient-to-r from-cyan-400 to-pink-500 scale-125 shadow-lg'
+                    : 'bg-white/30 hover:bg-white/50'
+                    }`}
+                  onClick={() => setCurrentTestimonial(index)}
+                  aria-label={`View testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-    </motion.section>
+    </section>
   );
 };
 
