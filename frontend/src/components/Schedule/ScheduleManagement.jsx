@@ -185,6 +185,16 @@ const ScheduleManagement = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
   };
 
+  // Calculate date threshold (current date - 1 day)
+  const currentDate = new Date('2025-09-06'); // Hardcoded to match your provided current date
+  const thresholdDate = new Date(currentDate);
+  thresholdDate.setDate(currentDate.getDate() - 1);
+
+  // Function to check if a schedule's date is before the threshold
+  const isPastDate = (scheduleDate) => {
+    return new Date(scheduleDate) < thresholdDate;
+  };
+
   // Admin access check
   if (!user || !user.isAdmin) {
     return (
@@ -528,13 +538,16 @@ const ScheduleManagement = () => {
                             </motion.button>
                           </div>
                         </div>
-                        <p className="text-gray-300 mb-2">
+                        <p className={`text-gray-300 mb-2 ${isPastDate(schedule.date) ? 'text-red-500' : ''}`}>
                           <span className="font-semibold">Date:</span>{' '}
                           {new Date(schedule.date).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
                           })}
+                          {isPastDate(schedule.date) && (
+                            <span className="ml-2 inline-block h-2 w-2 rounded-full bg-red-500" title="This schedule is outdated"></span>
+                          )}
                         </p>
                         <p className="text-gray-300 mb-2">
                           <span className="font-semibold">State:</span> {schedule.state || 'N/A'}

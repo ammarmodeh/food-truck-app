@@ -125,6 +125,16 @@ const ScheduleView = () => {
   // Unique states for dropdown
   const uniqueStates = [...new Set(schedules.map(sch => sch.state).filter(Boolean))].sort();
 
+  // Calculate date threshold (current date - 1 day)
+  const currentDate = new Date('2025-09-06T15:18:00+03:00'); // Hardcoded to match provided date and time
+  const thresholdDate = new Date(currentDate);
+  thresholdDate.setDate(currentDate.getDate() - 1);
+
+  // Function to check if a schedule's date is before the threshold
+  const isPastDate = (scheduleDate) => {
+    return new Date(scheduleDate) < thresholdDate;
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -332,13 +342,16 @@ const ScheduleView = () => {
                             {sch.location}, {sch.state}
                           </h3>
                         </div>
-                        <p className="text-lg text-gray-300 mb-2">
+                        <p className={`text-lg text-gray-300 mb-2 ${isPastDate(sch.date) ? 'text-red-500' : ''}`}>
                           <span className="font-semibold">Date:</span>{' '}
                           {new Date(sch.date).toLocaleDateString('en-US', {
                             weekday: 'long',
                             month: 'short',
                             day: 'numeric',
                           })}
+                          {isPastDate(sch.date) && (
+                            <span className="ml-2 inline-block h-2 w-2 rounded-full bg-red-500" title="This schedule is outdated"></span>
+                          )}
                         </p>
                         <p className="text-lg text-orange-400 font-semibold mb-4">
                           <span className="font-semibold text-gray-300">Time:</span> {sch.startTime} -{' '}
