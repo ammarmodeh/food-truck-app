@@ -19,11 +19,6 @@ const Testimonials = ({ isReady, isPublic }) => {
   const [editingTestimonialId, setEditingTestimonialId] = useState(null);
   const { user, isAuthenticated, token, loading: authLoading = false } = useSelector((state) => state.auth);
 
-  // Debug mount and props
-  useEffect(() => {
-    console.log('Testimonials component mounted:', { isReady, isPublic, isAuthenticated, userId: user?._id, token, authLoading });
-  }, [isReady, isPublic, isAuthenticated, user, token, authLoading]);
-
   // Fetch testimonials
   const fetchTestimonials = useCallback(async () => {
     try {
@@ -36,13 +31,11 @@ const Testimonials = ({ isReady, isPublic }) => {
         authLoading
       });
 
-      // Always use public endpoint if not authenticated or still loading auth
       let endpoint = `${import.meta.env.VITE_BACKEND_API}/api/testimonials/public`;
       let headers = {
         'Content-Type': 'application/json',
       };
 
-      // Only use authenticated endpoint if fully authenticated
       if (isAuthenticated && token && !authLoading) {
         endpoint = `${import.meta.env.VITE_BACKEND_API}/api/testimonials`;
         headers['Authorization'] = `Bearer ${token}`;
@@ -54,11 +47,11 @@ const Testimonials = ({ isReady, isPublic }) => {
       const timeoutId = setTimeout(() => {
         controller.abort();
         console.warn('Fetch testimonials timed out after 15 seconds');
-        setLoading(false);
         setError('Request timed out');
+        setLoading(false);
       }, 15000);
 
-      let response = await fetch(endpoint, {
+      const response = await fetch(endpoint, {
         method: 'GET',
         headers,
         signal: controller.signal,
@@ -84,7 +77,6 @@ const Testimonials = ({ isReady, isPublic }) => {
       const data = await response.json();
       console.log('Raw API response:', data);
 
-      // Validate response
       if (!data.reviews || !Array.isArray(data.reviews)) {
         throw new Error('Invalid response format: reviews is not an array');
       }
@@ -106,25 +98,25 @@ const Testimonials = ({ isReady, isPublic }) => {
       console.log('State updated:', { testimonialsLength: formattedTestimonials.length, loading: false });
     } catch (err) {
       console.error('Fetch testimonials error:', err.message);
-      setError(err.message || 'Unknown error fetching testimonials');
+      setError(err.message || 'Unable to load testimonials. Please try again.');
       setLoading(false);
       console.log('State updated:', { testimonialsLength: testimonials.length, loading: false, error: err.message });
     }
-  }, [isPublic, isAuthenticated, token, authLoading, isReady]);
+  }, [isPublic, isAuthenticated, token, authLoading]);
 
+  // Optimize fetch trigger to prevent unnecessary re-renders
   useEffect(() => {
-    // Wait for auth state to be fully determined and component to be ready
-    if (isReady && isAuthenticated !== null && (authLoading === false || authLoading === undefined)) {
-      fetchTestimonials();
-    } else {
+    if (!isReady || isAuthenticated === null || authLoading) {
       console.warn('Waiting for auth state or component readiness:', {
         isReady,
         isAuthenticated,
         authLoading
       });
       setLoading(false);
+      return;
     }
-  }, [isReady, isPublic, isAuthenticated, authLoading, fetchTestimonials]);
+    fetchTestimonials();
+  }, [isReady, isAuthenticated, authLoading, fetchTestimonials]);
 
   // Handle testimonial carousel
   useEffect(() => {
@@ -172,7 +164,6 @@ const Testimonials = ({ isReady, isPublic }) => {
         avatar: formData.avatar,
       };
 
-      // Include userId only for POST requests (create)
       if (!editingTestimonialId) {
         payload.userId = user._id;
       }
@@ -196,7 +187,6 @@ const Testimonials = ({ isReady, isPublic }) => {
         body: JSON.stringify(payload),
       });
 
-      // Retry with refreshed token if 401 Unauthorized
       if (response.status === 401) {
         console.warn('Unauthorized request, attempting to refresh token');
         const refreshResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/auth/refresh`, {
@@ -231,9 +221,7 @@ const Testimonials = ({ isReady, isPublic }) => {
         );
       }
 
-      // Re-fetch testimonials to ensure fresh data
       await fetchTestimonials();
-
       setFormData({
         text: '',
         author: '',
@@ -247,7 +235,7 @@ const Testimonials = ({ isReady, isPublic }) => {
       console.log('Testimonial submitted successfully:', data);
     } catch (err) {
       setFormError(err.message);
-      console.error('Submit testimonial error:', err.message, 'Status:', err.status);
+      console.error('Submit testimonial error:', err.message);
     }
   };
 
@@ -290,9 +278,7 @@ const Testimonials = ({ isReady, isPublic }) => {
         );
       }
 
-      // Re-fetch testimonials to ensure fresh data
       await fetchTestimonials();
-
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 3000);
       console.log('Testimonial deleted successfully:', data);
@@ -327,7 +313,6 @@ const Testimonials = ({ isReady, isPublic }) => {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}
-      style={{ position: 'relative' }}
     >
       <div className="container mx-auto px-6">
         <motion.div className="text-center mb-20" variants={itemVariants}>
@@ -352,7 +337,7 @@ const Testimonials = ({ isReady, isPublic }) => {
           <motion.div
             className="max-w-2xl mx-auto mb-20"
             initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
             <div className="relative card-gradient-bg backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl">
@@ -380,6 +365,7 @@ const Testimonials = ({ isReady, isPublic }) => {
                     onChange={handleInputChange}
                     placeholder="Your Name"
                     className="w-full px-4 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:border-purple-400 transition-all duration-300"
+                    aria-label="Your Name"
                   />
                   <input
                     type="text"
@@ -388,6 +374,7 @@ const Testimonials = ({ isReady, isPublic }) => {
                     onChange={handleInputChange}
                     placeholder="Your Role (e.g., Foodie, Customer)"
                     className="w-full px-4 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:border-purple-400 transition-all duration-300"
+                    aria-label="Your Role"
                   />
                   <textarea
                     name="text"
@@ -395,6 +382,7 @@ const Testimonials = ({ isReady, isPublic }) => {
                     onChange={handleInputChange}
                     placeholder="Write your review..."
                     className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:border-purple-400 transition-all duration-300 resize-none h-32"
+                    aria-label="Write your review"
                   />
                   <div className="flex justify-center space-x-2">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -405,6 +393,7 @@ const Testimonials = ({ isReady, isPublic }) => {
                         className={`text-2xl ${formData.rating >= star ? 'text-yellow-400' : 'text-white/30'}`}
                         whileHover={{ scale: 1.2 }}
                         whileTap={{ scale: 0.9 }}
+                        aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
                       >
                         ⭐
                       </motion.button>
@@ -416,8 +405,9 @@ const Testimonials = ({ isReady, isPublic }) => {
                       className="group relative text-sm sm:text-lg px-4 sm:px-6 py-3 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 text-white rounded-full font-bold shadow-2xl overflow-hidden max-w-xs"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      aria-label={editingTestimonialId ? 'Update Review' : 'Submit Review'}
                     >
-                      <span className={`relative z-10 flex items-center justify-center space-x-2`}>
+                      <span className="relative z-10 flex items-center justify-center space-x-2">
                         <span>{editingTestimonialId ? 'Update Review' : 'Submit Review'}</span>
                         <span>🚀</span>
                       </span>
@@ -441,6 +431,7 @@ const Testimonials = ({ isReady, isPublic }) => {
                         className="group relative px-4 sm:px-6 py-3 text-sm sm:text-lg bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 text-white rounded-full font-bold shadow-2xl overflow-hidden"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        aria-label="Cancel editing review"
                       >
                         <span className="relative z-10">Cancel</span>
                         <motion.div
@@ -468,12 +459,13 @@ const Testimonials = ({ isReady, isPublic }) => {
 
         {/* Testimonials Display */}
         <AnimatePresence mode="wait">
-          {console.log('Rendering testimonials:', { isReady, loading, testimonialsLength: testimonials.length, error, authLoading })}
-          {!isReady || authLoading ? (
+          {(!isReady || authLoading) ? (
             <motion.div
-              className="text-center py-20 max-w-5xl mx-auto"
+              key="auth-loading"
+              className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.3 } }}
               transition={{ duration: 0.6 }}
             >
               <div className="text-9xl mb-8 filter drop-shadow-2xl">🕒</div>
@@ -482,9 +474,11 @@ const Testimonials = ({ isReady, isPublic }) => {
             </motion.div>
           ) : loading ? (
             <motion.div
-              className="text-center py-20 max-w-5xl mx-auto"
+              key="testimonials-loading"
+              className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.3 } }}
               transition={{ duration: 0.6 }}
             >
               <LoadingSkeleton className="group">
@@ -498,9 +492,11 @@ const Testimonials = ({ isReady, isPublic }) => {
             </motion.div>
           ) : error ? (
             <motion.div
-              className="text-center py-20 max-w-5xl mx-auto"
+              key="testimonials-error"
+              className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.3 } }}
               transition={{ duration: 0.6 }}
             >
               <motion.div
@@ -508,22 +504,25 @@ const Testimonials = ({ isReady, isPublic }) => {
               >
                 🔮
               </motion.div>
-              <h3 className="text-4xl font-bold text-white mb-6">Error Loading Testimonials</h3>
+              <h3 className="text-4xl font-bold text-white mb-6">Unable to Load Testimonials</h3>
               <p className="text-white/60 mb-12 text-xl">{error}</p>
               <motion.button
                 className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => fetchTestimonials()}
+                onClick={fetchTestimonials}
+                aria-label="Retry loading testimonials"
               >
-                Retry
+                Try Again
               </motion.button>
             </motion.div>
           ) : testimonials.length === 0 ? (
             <motion.div
-              className="text-center py-20 max-w-5xl mx-auto"
+              key="testimonials-empty"
+              className="text-center py-20 max-w-5xl mx-auto card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.3 } }}
               transition={{ duration: 0.6 }}
             >
               <div className="text-9xl mb-8 filter drop-shadow-2xl">🎭</div>
@@ -532,9 +531,11 @@ const Testimonials = ({ isReady, isPublic }) => {
             </motion.div>
           ) : (
             <motion.div
+              key="testimonials-success"
               className="max-w-5xl mx-auto mb-20"
               initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.3 } }}
               transition={{ duration: 0.8 }}
             >
               <motion.div
@@ -579,14 +580,6 @@ const Testimonials = ({ isReady, isPublic }) => {
                     </h4>
                     <p className="text-white/60 text-lg">{testimonials[currentTestimonial].role}</p>
                   </div>
-                  {/* Debug info for troubleshooting */}
-                  {console.log('User ID debug:', {
-                    user: user?._id,
-                    testimonial: testimonials[currentTestimonial]?.userId,
-                    match: testimonials[currentTestimonial]?.userId?.toString() === user?._id?.toString(),
-                    isAuthenticated,
-                    isPublic
-                  })}
                   {!isPublic &&
                     isAuthenticated &&
                     user?._id &&
@@ -598,6 +591,7 @@ const Testimonials = ({ isReady, isPublic }) => {
                           className="group relative px-6 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full font-bold shadow-2xl overflow-hidden"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
+                          aria-label="Edit testimonial"
                         >
                           <span className="relative z-10">Edit</span>
                           <motion.div
@@ -610,6 +604,7 @@ const Testimonials = ({ isReady, isPublic }) => {
                           className="group relative px-6 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full font-bold shadow-2xl overflow-hidden"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
+                          aria-label="Delete testimonial"
                         >
                           <span className="relative z-10">Delete</span>
                           <motion.div
@@ -632,6 +627,7 @@ const Testimonials = ({ isReady, isPublic }) => {
                     onClick={() => setCurrentTestimonial(index)}
                     whileHover={{ scale: 1.2 }}
                     whileTap={{ scale: 0.9 }}
+                    aria-label={`View testimonial ${index + 1}`}
                   />
                 ))}
               </div>

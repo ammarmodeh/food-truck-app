@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from "react-router-dom";
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
 import { ArrowRightIcon } from '@heroicons/react/24/solid';
 import Testimonials from '../components/Testimonials';
 import { useSelector } from 'react-redux';
 
-const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF6B35;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23F7931E;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='300' fill='url(%23grad1)'/%3E%3Cg transform='translate(200,150)'%3E%3Ccircle r='40' fill='white' opacity='0.9'/%3E%3Ctext x='0' y='8' text-anchor='middle' fill='%23FF6B35' font-size='24' font-family='Arial'%3E🍕%3C/text%3E%3C/g%3E%3C/svg%3E";
+const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23FF6B35;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23F7931E;stop-opacity:1' /%3E%3C/defs%3E%3Crect width='400' height='300' fill='url(%23grad1)'/%3E%3Cg transform='translate(200,150)'%3E%3Ccircle r='40' fill='white' opacity='0.9'/%3E%3Ctext x='0' y='8' text-anchor='middle' fill='%23FF6B35' font-size='24' font-family='Arial'%3E🍕%3C/text%3E%3C/g%3E%3C/svg%3E";
 
 const renderMap = (status) => {
   if (status === Status.LOADING)
@@ -46,25 +46,20 @@ const Map = ({ center }) => {
 const Home = () => {
   const [featuredMenu, setFeaturedMenu] = useState([]);
   const [upcomingSchedule, setUpcomingSchedule] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [dataLoaded, setDataLoaded] = useState(false); // New state to track if data was successfully loaded
+  const [menuLoading, setMenuLoading] = useState(true);
+  const [menuError, setMenuError] = useState(null);
+  const [scheduleLoading, setScheduleLoading] = useState(true);
+  const [scheduleError, setScheduleError] = useState(null);
   const navigate = useNavigate();
 
   const isMounted = useRef(true);
-  const requestCount = useRef(0);
-  const dataFetched = useRef(false); // Prevent multiple fetches
+  const menuRequestCount = useRef(0);
+  const scheduleRequestCount = useRef(0);
+  const menuDataFetched = useRef(false);
+  const scheduleDataFetched = useRef(false);
 
   const heroRef = useRef(null);
   const containerRef = useRef(null);
-  // const { scrollYProgress } = useScroll({
-  //   target: containerRef,
-  //   offset: ["start start", "end start"],
-  // });
-
-  // const heroY = useTransform(scrollYProgress, [0, 1], [0, -300]);
-  // const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 1.2]);
-  // const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   const [isReady, setIsReady] = useState(false);
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -73,7 +68,7 @@ const Home = () => {
     const fetchInitialData = async () => {
       try {
         console.log('Fetching initial data for Home');
-        await new Promise((resolve) => setTimeout(resolve, 500)); // Reduced timeout
+        await new Promise((resolve) => setTimeout(resolve, 500));
         console.log('Home data fetching complete, setting isReady to true');
         setIsReady(true);
       } catch (err) {
@@ -83,7 +78,7 @@ const Home = () => {
     fetchInitialData();
   }, []);
 
-  console.log('Home rendering, isReady:', isReady, 'isAuthenticated:', isAuthenticated, 'dataLoaded:', dataLoaded);
+  console.log('Home rendering, isReady:', isReady, 'isAuthenticated:', isAuthenticated);
 
   useEffect(() => {
     return () => {
@@ -91,106 +86,131 @@ const Home = () => {
     };
   }, []);
 
-  useEffect(() => {
-    // Only fetch data once and if not already fetched
-    if (dataFetched.current || requestCount.current > 0) {
+  const fetchMenu = async () => {
+    if (menuDataFetched.current || menuRequestCount.current > 0) {
       return;
     }
 
-    const fetchData = async () => {
-      dataFetched.current = true; // Mark as fetched immediately to prevent duplicate requests
-      requestCount.current++;
+    menuDataFetched.current = true;
+    menuRequestCount.current++;
 
-      try {
-        setLoading(true);
-        setError(null);
+    try {
+      setMenuLoading(true);
+      setMenuError(null);
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-        // Fetch menu items
-        const menuResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/menu`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          signal: controller.signal
-        });
+      const menuResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/menu`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal
+      });
 
-        clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
 
-        if (!menuResponse.ok) {
-          throw new Error('Failed to fetch menu items');
-        }
-
-        const menuData = await menuResponse.json();
-        const formattedMenu = menuData.map((item) => ({
-          _id: item._id,
-          name: item.name,
-          description: item.description || 'No description available',
-          price: item.price,
-          image: item.image || fallbackImage,
-        }));
-
-        // Fetch schedules for upcoming dates
-        const scheduleController = new AbortController();
-        const scheduleTimeoutId = setTimeout(() => scheduleController.abort(), 10000);
-
-        const scheduleResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/schedules`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          signal: scheduleController.signal
-        });
-
-        clearTimeout(scheduleTimeoutId);
-
-        let formattedSchedule = [];
-        if (scheduleResponse.ok) {
-          const scheduleData = await scheduleResponse.json();
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-
-          formattedSchedule = scheduleData
-            .filter((item) => new Date(item.date) >= today)
-            .map((item) => ({
-              _id: item._id,
-              date: new Date(item.date),
-              location: item.location || 'Unknown Location',
-              state: item.state || 'CA',
-              startTime: item.startTime || '11:00 AM',
-              endTime: item.endTime || '8:00 PM',
-              coordinates: item.coordinates || null,
-            }))
-            .sort((a, b) => a.date - b.date);
-        } else {
-          console.warn('Failed to fetch schedule data, using empty schedule');
-        }
-
-        if (isMounted.current) {
-          setFeaturedMenu(formattedMenu.slice(0, 3));
-          setUpcomingSchedule(formattedSchedule.slice(0, 3));
-          setDataLoaded(true); // Mark data as successfully loaded
-        }
-      } catch (err) {
-        if (isMounted.current) {
-          console.error('API Error:', err);
-          setError(err.message);
-          setFeaturedMenu([]);
-          setUpcomingSchedule([]);
-          dataFetched.current = false; // Reset on error to allow retry
-        }
-      } finally {
-        if (isMounted.current) {
-          setLoading(false);
-        }
-        requestCount.current = Math.max(0, requestCount.current - 1);
+      if (!menuResponse.ok) {
+        throw new Error('Failed to fetch menu items');
       }
-    };
 
-    fetchData();
-  }, []); // Empty dependency array - only run once on mount
+      const menuData = await menuResponse.json();
+      const formattedMenu = menuData.map((item) => ({
+        _id: item._id,
+        name: item.name,
+        description: item.description || 'No description available',
+        price: item.price,
+        image: item.image || fallbackImage,
+      }));
+
+      if (isMounted.current) {
+        setFeaturedMenu(formattedMenu.slice(0, 3));
+      }
+    } catch (err) {
+      if (isMounted.current) {
+        console.error('Menu API Error:', err);
+        setMenuError(err.message || 'Unable to load menu. Please try again.');
+        setFeaturedMenu([]);
+        menuDataFetched.current = false; // Allow retry on error
+      }
+    } finally {
+      if (isMounted.current) {
+        setMenuLoading(false);
+      }
+      menuRequestCount.current = Math.max(0, menuRequestCount.current - 1);
+    }
+  };
+
+  const fetchSchedule = async () => {
+    if (scheduleDataFetched.current || scheduleRequestCount.current > 0) {
+      return;
+    }
+
+    scheduleDataFetched.current = true;
+    scheduleRequestCount.current++;
+
+    try {
+      setScheduleLoading(true);
+      setScheduleError(null);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const scheduleResponse = await fetch(`${import.meta.env.VITE_BACKEND_API}/api/schedules`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      let formattedSchedule = [];
+      if (scheduleResponse.ok) {
+        const scheduleData = await scheduleResponse.json();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        formattedSchedule = scheduleData
+          .filter((item) => new Date(item.date) >= today)
+          .map((item) => ({
+            _id: item._id,
+            date: new Date(item.date),
+            location: item.location || 'Unknown Location',
+            state: item.state || 'CA',
+            startTime: item.startTime || '11:00 AM',
+            endTime: item.endTime || '8:00 PM',
+            coordinates: item.coordinates || null,
+          }))
+          .sort((a, b) => a.date - b.date);
+      } else {
+        console.warn('Failed to fetch schedule data, using empty schedule');
+      }
+
+      if (isMounted.current) {
+        setUpcomingSchedule(formattedSchedule.slice(0, 3));
+      }
+    } catch (err) {
+      if (isMounted.current) {
+        console.error('Schedule API Error:', err);
+        setScheduleError(err.message || 'Unable to load locations. Please try again.');
+        setUpcomingSchedule([]);
+        scheduleDataFetched.current = false; // Allow retry on error
+      }
+    } finally {
+      if (isMounted.current) {
+        setScheduleLoading(false);
+      }
+      scheduleRequestCount.current = Math.max(0, scheduleRequestCount.current - 1);
+    }
+  };
+
+  useEffect(() => {
+    fetchMenu();
+    fetchSchedule();
+  }, []);
 
   const handleImageError = (e, setImage) => {
     e.target.onerror = null;
@@ -198,9 +218,9 @@ const Home = () => {
   };
 
   const getGridClasses = (itemCount) => {
-    if (itemCount === 1) return 'grid grid-cols-1 max-w-7xl mx-auto';
-    if (itemCount === 2) return 'grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto';
-    return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto';
+    if (itemCount === 1) return 'grid grid-cols-1 mx-auto';
+    if (itemCount === 2) return 'grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto';
+    return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto';
   };
 
   const containerVariants = {
@@ -296,19 +316,14 @@ const Home = () => {
         <motion.section
           ref={heroRef}
           className="relative flex items-center justify-center min-h-[calc(100vh-72px)] overflow-hidden"
-        // style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
         >
-          {/* Background with enhanced parallax effect */}
           <div
             className="absolute inset-0 z-0 bg-[url('/fb-photo.jpg')] bg-cover bg-center bg-no-repeat"
             style={{
               filter: 'blur(8px) brightness(0.5) contrast(1.2)',
-              // transform: 'scale(1.2)'
             }}
           />
-
-          <div className="relative z-10 text-center w-full max-w-7xl mx-auto px-4">
-            {/* Enhanced main title with 3D effect */}
+          <div className="relative z-10 text-center w-full mx-auto px-4">
             <motion.h1
               className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black mb-8 relative"
               initial={{ y: 100, opacity: 0, rotateX: 90 }}
@@ -339,8 +354,6 @@ const Home = () => {
                 ETIQUETTE
               </motion.span>
             </motion.h1>
-
-            {/* Enhanced subtitle with typewriter effect */}
             <motion.p
               className="text-xl sm:text-2xl md:text-3xl mb-12 text-white max-w-4xl mx-auto leading-relaxed font-light"
               initial={{ y: 50, opacity: 0 }}
@@ -364,8 +377,6 @@ const Home = () => {
                 />
               </motion.span>
             </motion.p>
-
-            {/* Enhanced CTA buttons with magnetic effect */}
             <motion.div
               className="flex flex-col sm:flex-row gap-6 justify-center items-center"
               initial={{ y: 50, opacity: 0 }}
@@ -387,8 +398,7 @@ const Home = () => {
                 }}
               >
                 <span className="relative z-10 flex items-center space-x-3">
-                  <motion.span
-                  >
+                  <motion.span>
                     🌟
                   </motion.span>
                   <span>Experience Menu</span>
@@ -398,7 +408,6 @@ const Home = () => {
                   transition={{ duration: 0.3 }}
                 />
               </motion.button>
-
               <motion.button
                 className="group px-9 py-3 border-2 border-white/30 text-white rounded-full text-xl font-bold backdrop-blur-sm bg-white/10 overflow-hidden relative"
                 whileHover={{
@@ -414,8 +423,7 @@ const Home = () => {
                   transition={{ duration: 0.3 }}
                 />
                 <span className="relative z-10 flex items-center space-x-3">
-                  <motion.span
-                  >
+                  <motion.span>
                     📍
                   </motion.span>
                   <span>Track Location</span>
@@ -425,7 +433,7 @@ const Home = () => {
           </div>
         </motion.section>
 
-        {/* Featured Creations Section - Show content based on dataLoaded */}
+        {/* Featured Creations Section */}
         <motion.section
           className="py-32 relative"
           variants={itemVariants}
@@ -451,66 +459,16 @@ const Home = () => {
               />
             </motion.div>
             <AnimatePresence mode="wait">
-              {!loading && dataLoaded ? (
-                error ? (
-                  <motion.div
-                    className="text-center py-20"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <motion.div
-                      className="text-9xl mb-8 filter drop-shadow-2xl"
-                    >
-                      🔮
-                    </motion.div>
-                    <h3 className="text-4xl font-bold text-white mb-6">Culinary Magic Loading...</h3>
-                    <p className="text-white/60 mb-12 text-xl">{error}</p>
-                    <motion.button
-                      className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => window.location.reload()}
-                    >
-                      Reload Experience
-                    </motion.button>
-                  </motion.div>
-                ) : featuredMenu.length === 0 ? (
-                  <motion.div
-                    className="text-center py-20"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    <div className="text-9xl mb-8 filter drop-shadow-2xl">🎭</div>
-                    <h3 className="text-4xl font-bold text-white mb-6">Crafting Culinary Art...</h3>
-                    <p className="text-white/60 text-xl">Our chefs are creating magic</p>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 max-w-7xl mx-auto"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ staggerChildren: 0.2 }}
-                  >
-                    {featuredMenu.map((item, index) => (
-                      <InteractiveCard
-                        key={item._id}
-                        item={item}
-                        index={index}
-                        className="relative bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden hover:shadow-cyan-500/25 transition-all duration-500"
-                      />
-                    ))}
-                  </motion.div>
-                )
-              ) : (
+              {menuLoading ? (
                 <motion.div
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 max-w-7xl mx-auto"
+                  key="menu-loading"
+                  className={getGridClasses(3)}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, transition: { duration: 0.3 } }}
                 >
                   {[1, 2, 3].map((index) => (
-                    <LoadingSkeleton key={`skeleton-${index}`} className="group">
+                    <LoadingSkeleton key={`menu-skeleton-${index}`} className="group">
                       <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
                         <div className="w-full h-80 bg-gradient-to-br from-slate-700/50 to-slate-600/50"></div>
                         <div className="p-8">
@@ -520,6 +478,57 @@ const Home = () => {
                         </div>
                       </div>
                     </LoadingSkeleton>
+                  ))}
+                </motion.div>
+              ) : menuError ? (
+                <motion.div
+                  key="menu-error"
+                  className="text-center py-20 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700 max-w-4xl mx-auto"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <motion.div className="text-9xl mb-8 filter drop-shadow-2xl">🍽️</motion.div>
+                  <h3 className="text-4xl font-bold text-white mb-6">Unable to Load Menu</h3>
+                  <p className="text-white/60 mb-12 text-xl">{menuError}</p>
+                  <motion.button
+                    className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={fetchMenu}
+                  >
+                    Try Again
+                  </motion.button>
+                </motion.div>
+              ) : featuredMenu.length === 0 ? (
+                <motion.div
+                  key="menu-empty"
+                  className="text-center py-20 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700 max-w-4xl mx-auto"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <div className="text-9xl mb-8 filter drop-shadow-2xl">🎭</div>
+                  <h3 className="text-4xl font-bold text-white mb-6">Crafting Culinary Art...</h3>
+                  <p className="text-white/60 text-xl">Our chefs are creating magic</p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="menu-success"
+                  className={getGridClasses(featuredMenu.length)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
+                  transition={{ staggerChildren: 0.2 }}
+                >
+                  {featuredMenu.map((item, index) => (
+                    <InteractiveCard
+                      key={item._id}
+                      item={item}
+                      className="relative bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden hover:shadow-cyan-500/25 transition-all duration-500"
+                    />
                   ))}
                 </motion.div>
               )}
@@ -575,128 +584,10 @@ const Home = () => {
               />
             </motion.div>
             <AnimatePresence mode="wait">
-              {!loading && dataLoaded ? (
-                error ? (
-                  <motion.div
-                    className="text-center py-20"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    <div className="text-9xl mb-8 filter drop-shadow-2xl">🗓️</div>
-                    <h3 className="text-4xl font-bold text-white mb-6">Location Data Unavailable</h3>
-                    <p className="text-white/60 text-xl">{error}</p>
-                  </motion.div>
-                ) : upcomingSchedule.length === 0 ? (
-                  <motion.div
-                    className="text-center py-20"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    <div className="text-9xl mb-8 filter drop-shadow-2xl">🗓️</div>
-                    <h3 className="text-4xl font-bold text-white mb-6">Planning Next Adventure...</h3>
-                    <p className="text-white/60 text-xl">No locations available at the moment</p>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    className={getGridClasses(upcomingSchedule.length)}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ staggerChildren: 0.2 }}
-                  >
-                    {upcomingSchedule.map((schedule, index) => (
-                      <motion.div
-                        key={schedule._id}
-                        className="relative card-gradient-bg backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 group w-full"
-                        viewport={{ once: true, margin: "-100px" }}
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-red-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <div className="relative z-10">
-                          <motion.div
-                            className="text-6xl mb-6 filter drop-shadow-lg"
-                          >
-                            📍
-                          </motion.div>
-                          <motion.h3
-                            className="text-lg font-bold text-white mb-4"
-                            initial={{ y: 20, opacity: 0 }}
-                            whileInView={{ y: 0, opacity: 1 }}
-                            transition={{ delay: index * 0.1 }}
-                          >
-                            {new Date(schedule.date).toLocaleDateString('en-US', {
-                              weekday: 'long',
-                              month: 'long',
-                              day: 'numeric',
-                            })}
-                          </motion.h3>
-                          <motion.p
-                            className="text-md text-cyan-300 mb-3 flex items-center space-x-3"
-                            initial={{ y: 20, opacity: 0 }}
-                            whileInView={{ y: 0, opacity: 1 }}
-                            transition={{ delay: index * 0.1 + 0.1 }}
-                          >
-                            <span>🏙️</span>
-                            <span>{schedule.location}{schedule.state ? `, ${schedule.state}` : ''}</span>
-                          </motion.p>
-                          <motion.p
-                            className="text-md text-orange-300 font-semibold flex items-center space-x-3 mb-4"
-                            initial={{ y: 20, opacity: 0 }}
-                            whileInView={{ y: 0, opacity: 1 }}
-                            transition={{ delay: index * 0.1 + 0.2 }}
-                          >
-                            <span>⏰</span>
-                            <span>{schedule.startTime} - {schedule.endTime}</span>
-                          </motion.p>
-                          {schedule.notes && (
-                            <motion.p
-                              className="text-sm text-white/70 italic bg-white/5 p-4 rounded-xl border border-white/10 backdrop-blur-sm mb-4"
-                              initial={{ opacity: 0 }}
-                              whileInView={{ opacity: 1 }}
-                              transition={{ delay: index * 0.1 + 0.3 }}
-                            >
-                              ✨ {schedule.notes}
-                            </motion.p>
-                          )}
-                          {schedule.coordinates ? (
-                            <Wrapper
-                              apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
-                              render={renderMap}
-                              libraries={['marker']}
-                            >
-                              <Map center={{ lat: schedule.coordinates.lat, lng: schedule.coordinates.lng }} />
-                            </Wrapper>
-                          ) : (
-                            <div className="h-64 w-full rounded-3xl bg-gray-700 flex items-center justify-center">
-                              <span className="text-gray-400">No map available</span>
-                            </div>
-                          )}
-                          {schedule.coordinates && (
-                            <motion.div
-                              className="mt-4 text-center"
-                              initial={{ opacity: 0 }}
-                              whileInView={{ opacity: 1 }}
-                              transition={{ delay: index * 0.1 + 0.4 }}
-                            >
-                              <motion.a
-                                href={`https://www.google.com/maps/dir/?api=1&destination=${schedule.coordinates.lat},${schedule.coordinates.lng}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center bg-button-bg-primary text-white px-4 py-2 rounded-full font-semibold text-sm"
-                                whileHover={{ scale: 1.05, boxShadow: '0 10px 20px rgba(251, 146, 60, 0.3)' }}
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                <ArrowRightIcon className="h-4 w-4 mr-1" />
-                                Get Directions
-                              </motion.a>
-                            </motion.div>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )
-              ) : (
+              {scheduleLoading ? (
                 <motion.div
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto"
+                  key="schedule-loading"
+                  className={getGridClasses(3)}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, transition: { duration: 0.3 } }}
@@ -710,6 +601,139 @@ const Home = () => {
                         <div className="h-64 bg-gray-700 rounded-3xl"></div>
                       </div>
                     </LoadingSkeleton>
+                  ))}
+                </motion.div>
+              ) : scheduleError ? (
+                <motion.div
+                  key="schedule-error"
+                  className="text-center py-20 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700 max-w-4xl mx-auto"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <div className="text-9xl mb-8 filter drop-shadow-2xl">🗓️</div>
+                  <h3 className="text-4xl font-bold text-white mb-6">Unable to Load Locations</h3>
+                  <p className="text-white/60 text-xl">{scheduleError}</p>
+                  <motion.button
+                    className="bg-gradient-to-r from-orange-500 to-pink-500 text-white px-10 py-4 rounded-full font-bold text-lg shadow-2xl mt-6"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={fetchSchedule}
+                  >
+                    Try Again
+                  </motion.button>
+                </motion.div>
+              ) : upcomingSchedule.length === 0 ? (
+                <motion.div
+                  key="schedule-empty"
+                  className="text-center py-20 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700 max-w-4xl mx-auto"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <div className="text-9xl mb-8 filter drop-shadow-2xl">🗓️</div>
+                  <h3 className="text-4xl font-bold text-white mb-6">Planning Next Adventure...</h3>
+                  <p className="text-white/60 text-xl">No locations available at the moment</p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="schedule-success"
+                  className={getGridClasses(upcomingSchedule.length)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, transition: { duration: 0.3 } }}
+                  transition={{ staggerChildren: 0.2 }}
+                >
+                  {upcomingSchedule.map((schedule, index) => (
+                    <motion.div
+                      key={schedule._id}
+                      className="relative card-gradient-bg backdrop-blur-2xl border border-white/10 p-8 rounded-3xl shadow-2xl overflow-hidden transition-all duration-500 group w-full"
+                      viewport={{ once: true, margin: "-100px" }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-red-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <div className="relative z-10">
+                        <motion.div
+                          className="text-6xl mb-6 filter drop-shadow-lg"
+                        >
+                          📍
+                        </motion.div>
+                        <motion.h3
+                          className="text-lg font-bold text-white mb-4"
+                          initial={{ y: 20, opacity: 0 }}
+                          whileInView={{ y: 0, opacity: 1 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          {new Date(schedule.date).toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </motion.h3>
+                        <motion.p
+                          className="text-md text-cyan-300 mb-3 flex items-center space-x-3"
+                          initial={{ y: 20, opacity: 0 }}
+                          whileInView={{ y: 0, opacity: 1 }}
+                          transition={{ delay: index * 0.1 + 0.1 }}
+                        >
+                          <span>🏙️</span>
+                          <span>{schedule.location}{schedule.state ? `, ${schedule.state}` : ''}</span>
+                        </motion.p>
+                        <motion.p
+                          className="text-md text-orange-300 font-semibold flex items-center space-x-3 mb-4"
+                          initial={{ y: 20, opacity: 0 }}
+                          whileInView={{ y: 0, opacity: 1 }}
+                          transition={{ delay: index * 0.1 + 0.2 }}
+                        >
+                          <span>⏰</span>
+                          <span>{schedule.startTime} - {schedule.endTime}</span>
+                        </motion.p>
+                        {schedule.notes && (
+                          <motion.p
+                            className="text-sm text-white/70 italic bg-white/5 p-4 rounded-xl border border-white/10 backdrop-blur-sm mb-4"
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            transition={{ delay: index * 0.1 + 0.3 }}
+                          >
+                            ✨ {schedule.notes}
+                          </motion.p>
+                        )}
+                        {schedule.coordinates ? (
+                          <Wrapper
+                            apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+                            render={renderMap}
+                            libraries={['marker']}
+                          >
+                            <Map center={{ lat: schedule.coordinates.lat, lng: schedule.coordinates.lng }} />
+                          </Wrapper>
+                        ) : (
+                          <div className="h-64 w-full rounded-3xl bg-gray-700 flex items-center justify-center">
+                            <span className="text-gray-400">No map available</span>
+                          </div>
+                        )}
+                        {schedule.coordinates && (
+                          <motion.div
+                            className="mt-4 text-center"
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            transition={{ delay: index * 0.1 + 0.4 }}
+                          >
+                            <motion.a
+                              href={`https://www.google.com/maps/dir/?api=1&destination=${schedule.coordinates.lat},${schedule.coordinates.lng}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center bg-button-bg-primary text-white px-4 py-2 rounded-full font-semibold text-sm"
+                              whileHover={{ scale: 1.05, boxShadow: '0 10px 20px rgba(251, 146, 60, 0.3)' }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <ArrowRightIcon className="h-4 w-4 mr-1" />
+                              Get Directions
+                            </motion.a>
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
                   ))}
                 </motion.div>
               )}

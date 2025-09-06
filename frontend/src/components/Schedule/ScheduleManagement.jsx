@@ -194,7 +194,7 @@ const ScheduleManagement = () => {
         initial="hidden"
         animate="visible"
       >
-        <div className="container mx-auto px-6 py-12 max-w-7xl">
+        <div className="container mx-auto px-6 py-12 ">
           <motion.div
             className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
             variants={itemVariants}
@@ -459,7 +459,7 @@ const ScheduleManagement = () => {
             </div>
           ) : error ? (
             <motion.div
-              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700 max-w-7xl mx-auto"
+              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700  mx-auto"
               variants={itemVariants}
             >
               <div className="text-6xl mb-4">📅</div>
@@ -476,7 +476,7 @@ const ScheduleManagement = () => {
             </motion.div>
           ) : filteredSchedules.length === 0 ? (
             <motion.div
-              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700 max-w-7xl mx-auto"
+              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700  mx-auto"
               variants={itemVariants}
             >
               <div className="text-6xl mb-4">📅</div>
