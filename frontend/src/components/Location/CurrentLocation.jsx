@@ -66,9 +66,7 @@ const CurrentLocation = () => {
       const errorMessage = err.response?.status === 500
         ? 'Server is temporarily unavailable. Please try again shortly.'
         : 'Failed to fetch current location. Please try again.';
-
       setError(errorMessage);
-      notify('Failed to fetch location', 'error');
     } finally {
       setLoading(false);
     }

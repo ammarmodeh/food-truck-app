@@ -62,16 +62,19 @@ const ScheduleView = () => {
     try {
       setLoading(true);
       setError(null);
-      const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_API}/api/schedules?view=${view}`);
-      setSchedules(data);
+      const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_API}/api/schedules`, {
+        params: { view },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      // Ensure data is an array
+      setSchedules(Array.isArray(data) ? data : []);
       setRetryCount(0);
     } catch (err) {
       const errorMessage = err.response?.status === 500
         ? 'Server is temporarily unavailable. Please try again shortly.'
         : 'Failed to load schedule. Please try again later.';
-
       setError(errorMessage);
-      console.error(err);
+      console.error('Error fetching schedules:', err);
     } finally {
       setLoading(false);
     }
@@ -88,7 +91,7 @@ const ScheduleView = () => {
 
   // Filter schedules
   const filteredSchedules = schedules.filter((sch) => {
-    const locationMatch = sch.location.toLowerCase().includes(filter.location.toLowerCase());
+    const locationMatch = sch.location?.toLowerCase().includes(filter.location.toLowerCase()) || false;
     const stateMatch = filter.state ? sch.state === filter.state : true;
     const dateMatch = (!filter.startDate || new Date(sch.date) >= new Date(filter.startDate)) &&
       (!filter.endDate || new Date(sch.date) <= new Date(filter.endDate));
@@ -126,7 +129,7 @@ const ScheduleView = () => {
   const uniqueStates = [...new Set(schedules.map(sch => sch.state).filter(Boolean))].sort();
 
   // Calculate date threshold (current date - 1 day)
-  const currentDate = new Date('2025-09-06T15:18:00+03:00'); // Hardcoded to match provided date and time
+  const currentDate = new Date('2025-09-06T21:43:00+03:00'); // Updated to match provided date and time
   const thresholdDate = new Date(currentDate);
   thresholdDate.setDate(currentDate.getDate() - 1);
 
@@ -276,7 +279,7 @@ const ScheduleView = () => {
               animate="visible"
               exit="hidden"
             >
-              <div className="text-6xl mb-4">📅</div>
+              <div className="text-6xl mb-4">�️</div>
               <h3 className="text-2xl font-bold text-gray-300 mb-2">Unable to load schedule</h3>
               <p className="text-gray-400 mb-6">{error}</p>
               <motion.button
@@ -303,7 +306,7 @@ const ScheduleView = () => {
               animate="visible"
               exit="hidden"
             >
-              <div className="text-6xl mb-4">📅</div>
+              <div className="text-6xl mb-4">🗓️</div>
               <h3 className="text-2xl font-bold text-gray-300 mb-2">No schedules available</h3>
               <p className="text-gray-400">Check back soon for our next stops!</p>
             </motion.div>
@@ -360,7 +363,7 @@ const ScheduleView = () => {
                         {sch.notes && (
                           <p className="text-sm text-gray-400 italic mb-4">💭 {sch.notes}</p>
                         )}
-                        {sch.coordinates ? (
+                        {sch.coordinates && sch.coordinates.lat && sch.coordinates.lng ? (
                           <Wrapper
                             apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
                             render={renderMap}
@@ -373,7 +376,7 @@ const ScheduleView = () => {
                             <span className="text-gray-400">No map available</span>
                           </div>
                         )}
-                        {sch.coordinates && (
+                        {sch.coordinates && sch.coordinates.lat && sch.coordinates.lng && (
                           <div className="mt-4 text-center">
                             <motion.a
                               href={`https://www.google.com/maps/dir/?api=1&destination=${sch.coordinates.lat},${sch.coordinates.lng}`}

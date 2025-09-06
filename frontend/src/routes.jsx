@@ -18,6 +18,7 @@ import MenuManagement from './components/Menu/MenuManagement';
 import ScheduleManagement from './components/Schedule/ScheduleManagement';
 import ReviewsManagement from './components/Admin/ReviewsManagement';
 import AdminRoute from './components/Admin/AdminRoute';
+import LocationManagement from './components/Admin/LocationManagement';
 
 const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ const router = createBrowserRouter([
       {
         path: 'schedule-mgmt',
         element: <AdminRoute><ScheduleManagement /></AdminRoute>,
+      },
+      {
+        path: 'curlocation-mgmt',
+        element: <AdminRoute><LocationManagement /></AdminRoute>,
       },
       {
         path: 'reviews-mgmt',

@@ -28,7 +28,7 @@ const ScheduleManagement = () => {
     state: '',
     startTime: '',
     endTime: '',
-    coordinates: { lat: 0, lng: 0 }
+    coordinates: { lat: '', lng: '' } // Changed from { lat: 0, lng: 0 } to empty strings
   });
   const [formErrors, setFormErrors] = useState({});
 
@@ -47,7 +47,6 @@ const ScheduleManagement = () => {
         setLoading(false);
       }
     };
-
     if (user && user.isAdmin) {
       fetchSchedules();
     } else {
@@ -63,7 +62,7 @@ const ScheduleManagement = () => {
       const [_, key] = name.split('.');
       setScheduleForm({
         ...scheduleForm,
-        coordinates: { ...scheduleForm.coordinates, [key]: parseFloat(value) || 0 },
+        coordinates: { ...scheduleForm.coordinates, [key]: value === '' ? '' : parseFloat(value) || '' },
       });
     } else {
       setScheduleForm({ ...scheduleForm, [name]: value });
@@ -77,20 +76,24 @@ const ScheduleManagement = () => {
     const errors = {};
     if (!scheduleForm.date) errors.date = 'Date is required';
     if (!scheduleForm.location) errors.location = 'Location is required';
+    if (!scheduleForm.state) errors.state = 'State is required';
     if (!scheduleForm.startTime) errors.startTime = 'Start time is required';
     if (!scheduleForm.endTime) errors.endTime = 'End time is required';
-
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       notify('Please fill in all required fields', 'error');
       return;
     }
-
     try {
+      // Prepare data to send, omitting coordinates if both lat and lng are empty
+      const submitData = { ...scheduleForm };
+      if (submitData.coordinates.lat === '' && submitData.coordinates.lng === '') {
+        delete submitData.coordinates;
+      }
       if (editSchedule) {
         const { data } = await axios.put(
           `${import.meta.env.VITE_BACKEND_API}/api/schedules/${editSchedule._id}`,
-          scheduleForm,
+          submitData,
           { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
         );
         setSchedules(schedules.map((s) => (s._id === editSchedule._id ? data : s)));
@@ -99,13 +102,13 @@ const ScheduleManagement = () => {
       } else {
         const { data } = await axios.post(
           `${import.meta.env.VITE_BACKEND_API}/api/schedules`,
-          scheduleForm,
+          submitData,
           { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
         );
         setSchedules([...schedules, data]);
         notify('Schedule added successfully!', 'success');
       }
-      setScheduleForm({ date: '', location: '', state: '', startTime: '', endTime: '', coordinates: { lat: 0, lng: 0 } });
+      setScheduleForm({ date: '', location: '', state: '', startTime: '', endTime: '', coordinates: { lat: '', lng: '' } });
       setFormErrors({});
     } catch (err) {
       notify(editSchedule ? 'Failed to update schedule' : 'Failed to add schedule', 'error');
@@ -134,7 +137,7 @@ const ScheduleManagement = () => {
       state: schedule.state || '',
       startTime: schedule.startTime,
       endTime: schedule.endTime,
-      coordinates: schedule.coordinates || { lat: 0, lng: 0 },
+      coordinates: schedule.coordinates || { lat: '', lng: '' }, // Ensure empty strings for coordinates if not present
     });
     setFormErrors({});
   };
@@ -179,14 +182,13 @@ const ScheduleManagement = () => {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
   };
 
   // Calculate date threshold (current date - 1 day)
-  const currentDate = new Date('2025-09-06'); // Hardcoded to match your provided current date
+  const currentDate = new Date('2025-09-06T21:51:00+03:00'); // Updated to match current date and time
   const thresholdDate = new Date(currentDate);
   thresholdDate.setDate(currentDate.getDate() - 1);
 
@@ -204,7 +206,7 @@ const ScheduleManagement = () => {
         initial="hidden"
         animate="visible"
       >
-        <div className="container mx-auto px-6 py-12 ">
+        <div className="container mx-auto px-6 py-12">
           <motion.div
             className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700"
             variants={itemVariants}
@@ -242,7 +244,6 @@ const ScheduleManagement = () => {
         >
           Schedule Management
         </motion.h2>
-
         {/* Schedule Form */}
         <motion.section className="mb-12" variants={itemVariants}>
           <div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700">
@@ -281,15 +282,17 @@ const ScheduleManagement = () => {
                   {formErrors.location && <p className="text-red-400 text-sm mt-1">{formErrors.location}</p>}
                 </div>
                 <div>
-                  <label htmlFor="state" className="block text-gray-300 font-semibold mb-1">State</label>
+                  <label htmlFor="state" className="block text-gray-300 font-semibold mb-1">State *</label>
                   <input
                     id="state"
                     name="state"
                     value={scheduleForm.state}
                     onChange={handleScheduleChange}
                     placeholder="State"
-                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    className={`w-full p-3 rounded-full bg-gray-700 text-white border ${formErrors.state ? 'border-red-500' : 'border-gray-600'} focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300`}
+                    required
                   />
+                  {formErrors.state && <p className="text-red-400 text-sm mt-1">{formErrors.state}</p>}
                 </div>
                 <div>
                   <label htmlFor="startTime" className="block text-gray-300 font-semibold mb-1">Start Time *</label>
@@ -357,7 +360,7 @@ const ScheduleManagement = () => {
                   type="button"
                   onClick={() => {
                     setEditSchedule(null);
-                    setScheduleForm({ date: '', location: '', state: '', startTime: '', endTime: '', coordinates: { lat: 0, lng: 0 } });
+                    setScheduleForm({ date: '', location: '', state: '', startTime: '', endTime: '', coordinates: { lat: '', lng: '' } });
                     setFormErrors({});
                   }}
                   className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white py-3 rounded-full font-semibold"
@@ -370,12 +373,10 @@ const ScheduleManagement = () => {
             </form>
           </div>
         </motion.section>
-
         {/* Divider */}
         <div className="my-24">
           <div className="border-t border-gray-700"></div>
         </div>
-
         {/* Filters */}
         <motion.section className="mb-12" variants={itemVariants}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 card-gradient-bg p-6 rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700">
@@ -446,7 +447,6 @@ const ScheduleManagement = () => {
             </button>
           </div>
         </motion.section>
-
         {/* Schedules List */}
         <motion.section className="mb-12" variants={itemVariants}>
           <div className="flex justify-between items-center mb-6">
@@ -469,10 +469,10 @@ const ScheduleManagement = () => {
             </div>
           ) : error ? (
             <motion.div
-              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700  mx-auto"
+              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700 mx-auto"
               variants={itemVariants}
             >
-              <div className="text-6xl mb-4">📅</div>
+              <div className="text-6xl mb-4">🗓️</div>
               <h3 className="text-2xl font-bold text-gray-300 mb-2">Unable to load schedules</h3>
               <p className="text-gray-400 mb-6">{error}</p>
               <motion.button
@@ -486,10 +486,10 @@ const ScheduleManagement = () => {
             </motion.div>
           ) : filteredSchedules.length === 0 ? (
             <motion.div
-              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700  mx-auto"
+              className="text-center py-12 card-gradient-bg rounded-3xl shadow-lg backdrop-blur-sm border border-gray-700 mx-auto"
               variants={itemVariants}
             >
-              <div className="text-6xl mb-4">📅</div>
+              <div className="text-6xl mb-4">🗓️</div>
               <h3 className="text-2xl font-bold text-gray-300 mb-2">No schedules found</h3>
               <p className="text-gray-400">
                 {filter.searchQuery || filter.state || filter.startDate || filter.endDate ? 'No schedules match your filters.' : 'No schedules available.'}
@@ -557,7 +557,7 @@ const ScheduleManagement = () => {
                         </p>
                         <p className="text-gray-300 mb-2">
                           <span className="font-semibold">Coordinates:</span>{' '}
-                          {schedule.coordinates ? `${schedule.coordinates.lat}, ${schedule.coordinates.lng}` : 'N/A'}
+                          {schedule.coordinates && schedule.coordinates.lat && schedule.coordinates.lng ? `${schedule.coordinates.lat}, ${schedule.coordinates.lng}` : 'N/A'}
                         </p>
                       </div>
                     </motion.div>

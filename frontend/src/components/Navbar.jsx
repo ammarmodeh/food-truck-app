@@ -143,18 +143,19 @@ const Navbar = () => {
   ];
 
   const infoNavItems = [
-    { name: 'Schedule', icon: '📅', path: '/schedule/week' },
+    { name: 'Schedule', icon: '🗓️', path: '/schedule/week' },
     { name: 'Location', icon: '📍', path: '/location' },
   ];
 
   const adminItems = [
-    { name: 'Admin', icon: '⚙️', path: '/admin' },
+    { name: 'Dashboard', icon: '⚙️', path: '/admin' },
   ];
 
   const adminToolsItems = [
     { name: 'Orders Mgmt.', icon: '📊', path: '/orders-mgmt' },
     { name: 'Menu Mgmt.', icon: '🍔', path: '/menu-mgmt' },
-    { name: 'Schedule Mgmt.', icon: '📅', path: '/schedule-mgmt' },
+    { name: 'Schedule Mgmt.', icon: '🗓️', path: '/schedule-mgmt' },
+    { name: 'CurLocation Mgmt.', icon: '📍', path: '/curlocation-mgmt' },
     { name: 'Reviews Mgmt.', icon: '⭐', path: '/reviews-mgmt' },
   ];
 
@@ -523,7 +524,7 @@ const Navbar = () => {
               </Link>
             </motion.div>
           ))}
-          <div className="px-4 py-2 text-gray-300 font-semibold">Admin Tools</div>
+          <div className="px-4 py-2 text-gray-300 font-semibold">Admin Mgmt.</div>
           {adminToolsItems.map((item, index) => (
             <motion.div
               key={item.name}
@@ -581,7 +582,7 @@ const Navbar = () => {
             whileTap={{ scale: 0.95 }}
           >
             <span>🛠️</span>
-            <span className="font-medium">Admin Tools</span>
+            <span className="font-medium">Admin Mgmt.</span>
           </motion.button>
           <AnimatePresence>
             {isAdminToolsOpen && (

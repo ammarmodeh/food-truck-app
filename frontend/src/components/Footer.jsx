@@ -58,7 +58,7 @@ const Footer = () => {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <span className="text-xl">📧</span>
-                <span className="text-gray-300">odehmahmoud57@icloud.com</span>
+                <span className="text-gray-300">galaxy.fsllc@gmail.com</span>
               </div>
               <div className="flex items-center space-x-3">
                 <span className="text-xl">📱</span>

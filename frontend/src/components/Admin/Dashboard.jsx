@@ -217,9 +217,9 @@ const Dashboard = () => {
   const { notify } = useNotification();
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
-  const [menuForm, setMenuForm] = useState({ name: '', description: '', price: 0, category: '', image: '', prepTime: 5 });
-  const [scheduleForm, setScheduleForm] = useState({ date: '', location: '', state: '', startTime: '', endTime: '', coordinates: { lat: 0, lng: 0 } });
-  const [locationForm, setLocationForm] = useState({ currentLocation: '', coordinates: { lat: 0, lng: 0 } });
+  // const [menuForm, setMenuForm] = useState({ name: '', description: '', price: '', category: '', image: '', prepTime: '' });
+  // const [scheduleForm, setScheduleForm] = useState({ date: '', location: '', state: '', startTime: '', endTime: '', coordinates: { lat: '', lng: '' } });
+  // const [locationForm, setLocationForm] = useState({ date: '', currentLocation: '', state: '', startTime: '', endTime: '', coordinates: { lat: '', lng: '' } });
   const [stats, setStats] = useState({
     orders: 0,
     revenue: 0,
@@ -233,7 +233,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  // Added states for filtering and pagination
   const [filter, setFilter] = useState({
     orderNumber: '',
     customer: '',
@@ -243,9 +242,36 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const handleMenuChange = (e) => setMenuForm({ ...menuForm, [e.target.name]: e.target.name === 'price' || e.target.name === 'prepTime' ? parseFloat(e.target.value) || 0 : e.target.value });
-  const handleScheduleChange = (e) => setScheduleForm({ ...scheduleForm, [e.target.name]: e.target.value });
-  const handleLocationChange = (e) => setLocationForm({ ...locationForm, [e.target.name]: e.target.name.includes('coordinates') ? { ...locationForm.coordinates, [e.target.name.split('.')[1]]: parseFloat(e.target.value) || 0 } : e.target.value });
+  // const handleMenuChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setMenuForm({ ...menuForm, [name]: name === 'price' || name === 'prepTime' ? (value === '' ? '' : parseFloat(value) || '') : value });
+  // };
+
+  // const handleScheduleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   if (name.includes('coordinates')) {
+  //     const [_, key] = name.split('.');
+  //     setScheduleForm({
+  //       ...scheduleForm,
+  //       coordinates: { ...scheduleForm.coordinates, [key]: value === '' ? '' : parseFloat(value) || '' },
+  //     });
+  //   } else {
+  //     setScheduleForm({ ...scheduleForm, [name]: value });
+  //   }
+  // };
+
+  // const handleLocationChange = (e) => {
+  //   const { name, value } = e.target;
+  //   if (name.includes('coordinates')) {
+  //     const [_, key] = name.split('.');
+  //     setLocationForm({
+  //       ...locationForm,
+  //       coordinates: { ...locationForm.coordinates, [key]: value === '' ? '' : parseFloat(value) || '' },
+  //     });
+  //   } else {
+  //     setLocationForm({ ...locationForm, [name]: value });
+  //   }
+  // };
 
   // Function to group data by time frame
   const groupByTimeFrame = (data, timeFrame) => {
@@ -367,56 +393,73 @@ const Dashboard = () => {
     }
   }, [user, navigate]);
 
-  const addMenuItem = async (e) => {
-    e.preventDefault();
-    if (!menuForm.name || !menuForm.price || !menuForm.category) {
-      notify('Please fill in all required fields', 'error');
-      return;
-    }
-    try {
-      await axios.post(`${import.meta.env.VITE_BACKEND_API}/api/menu`, menuForm, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      notify('Menu item added successfully!', 'success');
-      setMenuForm({ name: '', description: '', price: 0, category: '', image: '', prepTime: 5 });
-    } catch (err) {
-      notify('Failed to add menu item', 'error');
-    }
-  };
+  // const addMenuItem = async (e) => {
+  //   e.preventDefault();
+  //   if (!menuForm.name || !menuForm.price || !menuForm.category) {
+  //     notify('Please fill in all required fields', 'error');
+  //     return;
+  //   }
+  //   try {
+  //     await axios.post(`${import.meta.env.VITE_BACKEND_API}/api/menu`, menuForm, {
+  //       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+  //     });
+  //     notify('Menu item added successfully!', 'success');
+  //     setMenuForm({ name: '', description: '', price: '', category: '', image: '', prepTime: '' });
+  //   } catch (err) {
+  //     notify('Failed to add menu item', 'error');
+  //   }
+  // };
 
-  const addSchedule = async (e) => {
-    e.preventDefault();
-    if (!scheduleForm.date || !scheduleForm.location || !scheduleForm.startTime || !scheduleForm.endTime) {
-      notify('Please fill in all required fields', 'error');
-      return;
-    }
-    try {
-      await axios.post(`${import.meta.env.VITE_BACKEND_API}/api/schedules`, scheduleForm, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      notify('Schedule added successfully!', 'success');
-      setScheduleForm({ date: '', location: '', state: '', startTime: '', endTime: '', coordinates: { lat: 0, lng: 0 } });
-    } catch (err) {
-      notify('Failed to add schedule', 'error');
-    }
-  };
+  // const addSchedule = async (e) => {
+  //   e.preventDefault();
+  //   if (!scheduleForm.date || !scheduleForm.location || !scheduleForm.startTime || !scheduleForm.endTime) {
+  //     notify('Please fill in all required fields', 'error');
+  //     return;
+  //   }
+  //   try {
+  //     await axios.post(`${import.meta.env.VITE_BACKEND_API}/api/schedules`, scheduleForm, {
+  //       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+  //     });
+  //     notify('Schedule added successfully!', 'success');
+  //     setScheduleForm({ date: '', location: '', state: '', startTime: '', endTime: '', coordinates: { lat: '', lng: '' } });
+  //   } catch (err) {
+  //     notify('Failed to add schedule', 'error');
+  //   }
+  // };
 
-  const updateLocation = async (e) => {
-    e.preventDefault();
-    if (!locationForm.currentLocation || !locationForm.coordinates.lat || !locationForm.coordinates.lng) {
-      notify('Please fill in all required fields', 'error');
-      return;
-    }
-    try {
-      await axios.put(`${import.meta.env.VITE_BACKEND_API}/api/locations/current`, locationForm, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
-      notify('Location updated successfully!', 'success');
-      setLocationForm({ currentLocation: '', coordinates: { lat: 0, lng: 0 } });
-    } catch (err) {
-      notify('Failed to update location', 'error');
-    }
-  };
+  // const addLocation = async (e) => {
+  //   e.preventDefault();
+  //   if (!locationForm.date || !locationForm.currentLocation || !locationForm.state || !locationForm.startTime || !locationForm.endTime) {
+  //     notify('Please fill in all required fields', 'error');
+  //     return;
+  //   }
+  //   try {
+  //     await axios.post(`${import.meta.env.VITE_BACKEND_API}/api/locations`, locationForm, {
+  //       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+  //     });
+  //     notify('Location added successfully!', 'success');
+  //     setLocationForm({ date: '', currentLocation: '', state: '', startTime: '', endTime: '', coordinates: { lat: '', lng: '' } });
+  //   } catch (err) {
+  //     notify('Failed to add location', 'error');
+  //   }
+  // };
+
+  // const updateLocation = async (e) => {
+  //   e.preventDefault();
+  //   if (!locationForm.date || !locationForm.currentLocation || !locationForm.state || !locationForm.startTime || !locationForm.endTime) {
+  //     notify('Please fill in all required fields', 'error');
+  //     return;
+  //   }
+  //   try {
+  //     await axios.put(`${import.meta.env.VITE_BACKEND_API}/api/locations/current`, locationForm, {
+  //       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+  //     });
+  //     notify('Location updated successfully!', 'success');
+  //     setLocationForm({ date: '', currentLocation: '', state: '', startTime: '', endTime: '', coordinates: { lat: '', lng: '' } });
+  //   } catch (err) {
+  //     notify('Failed to update location', 'error');
+  //   }
+  // };
 
   // Export data to Excel
   const exportToExcel = () => {
@@ -782,7 +825,7 @@ const Dashboard = () => {
         />
 
         {/* Divider */}
-        <div className="my-24">
+        {/* <div className="my-24">
           <div className="border-t border-gray-700"></div>
         </div>
 
@@ -942,7 +985,7 @@ const Dashboard = () => {
                     type="number"
                     step="any"
                     value={scheduleForm.coordinates.lat}
-                    onChange={(e) => setScheduleForm({ ...scheduleForm, coordinates: { ...scheduleForm.coordinates, lat: parseFloat(e.target.value) || 0 } })}
+                    onChange={handleScheduleChange}
                     placeholder="Latitude"
                     className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                   />
@@ -954,7 +997,7 @@ const Dashboard = () => {
                     type="number"
                     step="any"
                     value={scheduleForm.coordinates.lng}
-                    onChange={(e) => setScheduleForm({ ...scheduleForm, coordinates: { ...scheduleForm.coordinates, lng: parseFloat(e.target.value) || 0 } })}
+                    onChange={handleScheduleChange}
                     placeholder="Longitude"
                     className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
                   />
@@ -975,9 +1018,20 @@ const Dashboard = () => {
             <div className="card-gradient-bg p-8 rounded-3xl shadow-lg backdrop-blur-sm border-1 border-gray-700">
               <div className="flex items-center justify-center space-x-3 mb-6">
                 <PlusIcon className="h-8 w-8 text-orange-400" />
-                <h3 className="text-2xl font-bold text-white">Update Current Location</h3>
+                <h3 className="text-2xl font-bold text-white">Manage Current Location</h3>
               </div>
-              <form onSubmit={updateLocation}>
+              <form onSubmit={addLocation}>
+                <div className="mb-4">
+                  <label className="block text-gray-300 font-semibold mb-1">Date *</label>
+                  <input
+                    name="date"
+                    type="date"
+                    value={locationForm.date}
+                    onChange={handleLocationChange}
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    required
+                  />
+                </div>
                 <div className="mb-4">
                   <label className="block text-gray-300 font-semibold mb-1">Current Location *</label>
                   <input
@@ -990,29 +1044,60 @@ const Dashboard = () => {
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-gray-300 font-semibold mb-1">Latitude *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">State *</label>
+                  <input
+                    name="state"
+                    value={locationForm.state}
+                    onChange={handleLocationChange}
+                    placeholder="State"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-300 font-semibold mb-1">Start Time *</label>
+                  <input
+                    name="startTime"
+                    value={locationForm.startTime}
+                    onChange={handleLocationChange}
+                    placeholder="Start Time (e.g., 10:00 AM)"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-300 font-semibold mb-1">End Time *</label>
+                  <input
+                    name="endTime"
+                    value={locationForm.endTime}
+                    onChange={handleLocationChange}
+                    placeholder="End Time (e.g., 6:00 PM)"
+                    className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-300 font-semibold mb-1">Latitude</label>
                   <input
                     name="coordinates.lat"
                     type="number"
                     step="any"
                     value={locationForm.coordinates.lat}
-                    onChange={(e) => setLocationForm({ ...locationForm, coordinates: { ...locationForm.coordinates, lat: parseFloat(e.target.value) || 0 } })}
+                    onChange={handleLocationChange}
                     placeholder="Latitude"
                     className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
-                    required
                   />
                 </div>
                 <div className="mb-6">
-                  <label className="block text-gray-300 font-semibold mb-1">Longitude *</label>
+                  <label className="block text-gray-300 font-semibold mb-1">Longitude</label>
                   <input
                     name="coordinates.lng"
                     type="number"
                     step="any"
                     value={locationForm.coordinates.lng}
-                    onChange={(e) => setLocationForm({ ...locationForm, coordinates: { ...locationForm.coordinates, lng: parseFloat(e.target.value) || 0 } })}
+                    onChange={handleLocationChange}
                     placeholder="Longitude"
                     className="w-full p-3 rounded-full bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
-                    required
                   />
                 </div>
                 <motion.button
@@ -1021,12 +1106,20 @@ const Dashboard = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  Update Location
+                  Add Location
                 </motion.button>
               </form>
+              <motion.button
+                onClick={updateLocation}
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-full font-semibold mt-4"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Update Current Location
+              </motion.button>
             </div>
           </motion.section>
-        </div>
+        </div> */}
       </div>
     </motion.div>
   );

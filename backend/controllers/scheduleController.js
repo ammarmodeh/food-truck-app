@@ -11,16 +11,16 @@ export const getSchedules = async (req, res) => {
       endDate.setDate(endDate.getDate() + 7);
       schedules = await Schedule.find({
         date: { $gte: startDate, $lte: endDate },
-      }).sort('date');
+      }).sort({ date: 1 });
     } else if (view === 'month') {
       const now = new Date();
       const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       schedules = await Schedule.find({
         date: { $gte: startDate, $lte: endDate },
-      }).sort('date');
+      }).sort({ date: 1 });
     } else {
-      schedules = await Schedule.find().sort('date'); // Fetch all schedules if no view parameter
+      schedules = await Schedule.find().sort({ date: -1 }); // Fetch all schedules if no view parameter
     }
     res.json(schedules);
   } catch (err) {
@@ -31,6 +31,9 @@ export const getSchedules = async (req, res) => {
 export const addSchedule = async (req, res) => {
   const { date, location, state, startTime, endTime, coordinates } = req.body;
   try {
+    if (!date || !location || !state || !startTime || !endTime) {
+      return res.status(400).json({ msg: 'All required fields must be provided' });
+    }
     const schedule = new Schedule({ date, location, state, startTime, endTime, coordinates });
     await schedule.save();
     res.json(schedule);
@@ -41,8 +44,12 @@ export const addSchedule = async (req, res) => {
 
 export const updateSchedule = async (req, res) => {
   const { id } = req.params;
+  const { date, location, state, startTime, endTime, coordinates } = req.body;
   try {
-    const schedule = await Schedule.findByIdAndUpdate(id, req.body, { new: true });
+    if (!date || !location || !state || !startTime || !endTime) {
+      return res.status(400).json({ msg: 'All required fields must be provided' });
+    }
+    const schedule = await Schedule.findByIdAndUpdate(id, { date, location, state, startTime, endTime, coordinates }, { new: true });
     if (!schedule) return res.status(404).json({ msg: 'Schedule not found' });
     res.json(schedule);
   } catch (err) {
