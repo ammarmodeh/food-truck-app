@@ -22,7 +22,9 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
+  BarController,
   LineElement,
+  LineController,
   PointElement,
   Title,
   Tooltip,
@@ -34,11 +36,14 @@ import { Line, Bar, Doughnut, Pie } from 'react-chartjs-2';
 import * as XLSX from 'xlsx';
 
 // Register ChartJS components
+// Note: BarController and LineController are explicitly registered to support mixed chart types
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  BarController,
   LineElement,
+  LineController,
   PointElement,
   Title,
   Tooltip,
