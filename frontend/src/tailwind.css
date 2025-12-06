@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #ea580c;
+  /* Dark Orange */
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #fff7ed;
+  /* Light Orange/White bg */
+  --color-secondary-foreground: #ea580c;
+
+  --color-background: #ffffff;
+  --color-foreground: #020617;
+  /* Slate 950 */
+
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #020617;
+
+  --color-border: #e2e8f0;
+  --color-input: #e2e8f0;
+
+  --color-accent: #f1f5f9;
+  --color-accent-foreground: #0f172a;
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+
+  --color-ring: #ea580c;
+  /* Matches primary usually */
+
+  /* Retain existing if needed, but overriding for the new look */
+  --color-text-primary: #ea580c;
+  --color-button-bg-primary: #ea580c;
+}
+
+@layer utilities {
+  .section-container {
+    @apply container mx-auto px-4 py-8;
+  }
+
+  .section-heading {
+    @apply text-3xl md:text-4xl font-bold tracking-tight text-center mb-8 text-foreground;
+  }
+
+  .compact-button {
+    @apply h-8 px-3 text-xs font-medium rounded-md transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 flex items-center justify-center cursor-pointer;
+  }
+}

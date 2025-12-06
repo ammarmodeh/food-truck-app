@@ -1,0 +1,237 @@
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { login, clearErrors } from '../../redux/actions/authActions';
+import { motion } from 'framer-motion';
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+
+const Login = () => {
+  const [countryCode, setCountryCode] = useState('+1');
+  const [phoneInput, setPhoneInput] = useState('');
+  const [formData, setFormData] = useState({ phone: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated, loading, error, message } = useSelector((state) => state.auth);
+
+  // Clear messages after 60 seconds
+  useEffect(() => {
+    if (error || message) {
+      const timer = setTimeout(() => {
+        dispatch(clearErrors());
+      }, 60000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, message, dispatch]);
+
+  // Clear messages on navigation
+  useEffect(() => {
+    return () => {
+      dispatch(clearErrors());
+    };
+  }, [dispatch]);
+
+  const onPhoneChange = (e) => {
+    const value = e.target.value.replace(/[^\d]/g, ''); // Allow only digits
+    setPhoneInput(value);
+    setFormData({ ...formData, phone: countryCode + value });
+    dispatch(clearErrors()); // Clear messages on input change
+  };
+
+  const onCountryCodeChange = (e) => {
+    const newCode = e.target.value;
+    setCountryCode(newCode);
+    setFormData({ ...formData, phone: phoneInput ? newCode + phoneInput : '' });
+    dispatch(clearErrors()); // Clear messages on input change
+  };
+
+  const onPasswordChange = (e) => {
+    setFormData({ ...formData, password: e.target.value });
+    dispatch(clearErrors()); // Clear messages on input change
+  };
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const phoneRegex = countryCode === '+1' ? /^\+1\d{10}$/ : /^\+962\d{9}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      dispatch({
+        type: 'AUTH_ERROR',
+        payload: `Invalid phone number format. Use ${countryCode} followed by ${countryCode === '+1' ? '10-digit' : '9-digit'} number (e.g., ${countryCode === '+1' ? '+12345678901' : '+962123456789'}).`,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    dispatch(login(formData));
+    setIsSubmitting(false);
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) navigate('/');
+  }, [isAuthenticated, navigate]);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        delayChildren: 0.2,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5, ease: 'easeOut' },
+    },
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="w-full max-w-md p-8 bg-white rounded-3xl shadow-xl border border-gray-100"
+      >
+        <motion.div variants={itemVariants} className="text-center mb-8">
+          <div className="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl text-orange-600">🔐</span>
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900">
+            Welcome Back
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Sign in to your account to continue
+          </p>
+        </motion.div>
+
+        {error && (
+          <motion.div
+            variants={itemVariants}
+            className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl flex justify-between items-center"
+          >
+            <span>{error}</span>
+            <button
+              type="button"
+              className="text-red-400 hover:text-red-600"
+              onClick={() => dispatch(clearErrors())}
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+
+        {message && (
+          <motion.div
+            variants={itemVariants}
+            className="mb-6 p-4 bg-green-50 border border-green-100 text-green-600 rounded-xl"
+          >
+            <span>{message}</span>
+          </motion.div>
+        )}
+
+        <form onSubmit={onSubmit} className="space-y-6">
+          <motion.div variants={itemVariants}>
+            <label className="block text-gray-700 font-medium mb-2">
+              Phone Number
+            </label>
+            <div className="flex">
+              <select
+                value={countryCode}
+                onChange={onCountryCodeChange}
+                className="p-4 rounded-l-xl bg-gray-50 text-gray-900 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+              >
+                <option value="+1">+1 (USA)</option>
+                <option value="+962">+962 (Jordan)</option>
+              </select>
+              <input
+                type="tel"
+                name="phone"
+                value={phoneInput}
+                onChange={onPhoneChange}
+                placeholder={countryCode === '+1' ? '2345678901' : '123456789'}
+                className="w-full p-4 rounded-r-xl bg-gray-50 text-gray-900 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300"
+                required
+              />
+            </div>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="relative">
+            <label className="block text-gray-700 font-medium mb-2">
+              Password
+            </label>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={formData.password}
+              onChange={onPasswordChange}
+              placeholder="Enter your password"
+              className="w-full p-4 rounded-xl bg-gray-50 text-gray-900 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-300 pr-12"
+              required
+            />
+            <button
+              type="button"
+              className="absolute right-3 bottom-3 p-1 text-gray-400 hover:text-orange-600"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? (
+                <EyeSlashIcon className="h-5 w-5" />
+              ) : (
+                <EyeIcon className="h-5 w-5" />
+              )}
+            </button>
+          </motion.div>
+
+          <motion.div variants={itemVariants} className="text-right">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-orange-600 hover:text-orange-700 hover:underline transition duration-300"
+            >
+              Forgot Password?
+            </Link>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <motion.button
+              type="submit"
+              className="w-full bg-orange-600 text-white p-4 rounded-xl font-bold shadow-lg hover:bg-orange-700 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={isSubmitting || loading}
+            >
+              {isSubmitting || loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-t-2 border-r-2 border-white rounded-full animate-spin mr-2"></div>
+                  Signing in...
+                </div>
+              ) : (
+                'Sign In'
+              )}
+            </motion.button>
+          </motion.div>
+        </form>
+
+        <motion.div variants={itemVariants} className="mt-6 text-center">
+          <p className="text-gray-500">
+            Don't have an account?{' '}
+            <Link
+              to="/register"
+              className="font-bold text-orange-600 hover:text-orange-700 hover:underline transition duration-300"
+            >
+              Create one now
+            </Link>
+          </p>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default Login;
